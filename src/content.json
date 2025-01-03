@@ -1,0 +1,128 @@
+{
+    "planets": [
+        {
+            "title": "Education",
+            "contentSections": [
+                {
+                    "sectionTitle": "Northeastern University",
+                    "description": "Candidate for Bachelor of Science in Computer Science and Computer Engineering, May 2026",
+                    "items": [
+                        "GPA: 3.96/4.0",
+                        "Relevant Coursework: Object Oriented Design, Algorithms & Data Structures, Database Design, Computer Systems, Networks & Distributed Systems, Differential Equations and Linear Algebra, Calculus III",
+                        "Activities: Vice-President Men’s Club Volleyball - Won 2022 National Championship",
+                        "Awards: Dean’s Scholarship, Dean’s List (AllSemesters)"
+                    ]
+                }
+            ],
+            "sizeFactor": 0.4,
+            "positionFactor": 2,
+            "revolutionSpeedFactor": 0.00005,
+            "rotationSpeedFactor": 0.0005,
+            "texturePath": "planetTexture4"
+        },
+        {
+            "title": "Technical Skills",
+            "contentSections": [
+                {
+                    "sectionTitle": "Programming Languages",
+                    "description": "",
+                    "items": [
+                        "Java",
+                        "Kotlin",
+                        "Python",
+                        "C++",
+                        "SQL(MySQL,SQLite)",
+                        "Javascript(ReactJS,NodeJS)"
+                    ]
+                },
+                {
+                    "sectionTitle": "Technologies & Frameworks",
+                    "description": "",
+                    "items": [
+                        "Git",
+                        "Docker",
+                        "AWS",
+                        "RESTAPIs",
+                        "TCP/IP",
+                        "PyTorch",
+                        "YOLO",
+                        "SAM",
+                        "OpenCV"
+                    ]
+                },
+                {
+                    "sectionTitle": "Systems",
+                    "description": "",
+                    "items": [
+                        "Linux(Ubuntu)",
+                        "macOS",
+                        "Windows"
+                    ]
+                }
+            ],
+            "sizeFactor": 0.3,
+            "positionFactor": 4,
+            "revolutionSpeedFactor": 0.0002,
+            "rotationSpeedFactor": 0.0007,
+            "texturePath": "planetTexture3"
+        },
+        {
+            "title": "Work Experience",
+            "contentSections": [
+                {
+                    "sectionTitle": "Amazon Robotics",
+                    "description": "Software Development Engineer Co-op, June 2024 - December 2024",
+                    "items": [
+                        "Collaborated with a small team on an in-van process technology system in Amazon FTR’s Innovation Lab",
+                        "Redesigned and refactored the codebase to a microservice-based backend in Java and Kotlin, enhancing code quality, scalability, maintainability, and efficiency",
+                        "Integrated the system with Amazon’s production ecosystem utilizing AWS Lambdas, REST APIs, and Docker to prepare the system and enable edge deployment for on-road deliveries",
+                        "Conducted on-road testing to validate system performance, focusing on software and hardware resiliency, seek-time optimization, and a seamless user experience",
+                        "Integrated advanced object segmentation and tracking models with LLM-based planning to enhance real-time robotic environment modeling"
+                    ]
+                },
+                {
+                    "sectionTitle": "Amazon Robotics",
+                    "description": "Software Development Engineer Co-op, July 2023 - December 2023",
+                    "items": [
+                        "Developed a proof of concept in-van delivery process technology system to improve package delivery efficiency and accuracy with three interns in Amazon FTR’s Innovation Lab",
+                        "Spearheaded the creation of an automation system for package seeking using Python and an internal Amazon Robotics computer vision system",
+                        "Built a frontend with JavaScript and React, incorporating feedback from end users to improve functionality",
+                        "Coordinated with contractors on a comparative time-study; achieving a notable reduction in package delivery time and positive user experience feedback",
+                        "Presented and demonstrated the system to the CEO of Amazon, receiving positive feedback and support for further development"
+                    ]
+                }
+            ],
+            "sizeFactor": 0.7,
+            "positionFactor": 7,
+            "revolutionSpeedFactor": 0.00009,
+            "rotationSpeedFactor": 0.00009,
+            "texturePath": "planetTexture2"
+        },
+        {
+            "title": "Projects",
+            "contentSections": [
+                {
+                    "sectionTitle": "Transport Layer Protocol",
+                    "description": "Developer, March 2023 - April 2023",
+                    "items": [
+                        "Designed and implemented a Python-based transport protocol leveraging TCP principles, ensuring reliable, ordered data delivery without duplicates or errors",
+                        "Conducted rigorous testing on a network emulator to validate performance under variable network conditions"
+                    ]
+                },
+                {
+                    "sectionTitle": "Image Manipulation and Enhancement Editor",
+                    "description": "Developer, October 2022 - December 2022",
+                    "items": [
+                        "Created an image editing application in Java using the Model-View-Controller (MVC) architecture, enabling complex filter and transformations",
+                        "Designed and executed a comprehensive test suite using JUnit, including both unit and integration tests"
+                    ]
+                }
+            ],
+            "sizeFactor": 0.5,
+            "positionFactor": 10,
+            "revolutionSpeedFactor": 0.0001,
+            "rotationSpeedFactor": 0.00007,
+            "texturePath": "planetTexture5"
+        }
+    ]
+}
