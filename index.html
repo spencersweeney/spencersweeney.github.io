@@ -1,9 +1,98 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Spencer Sweeney Website</title><style>body{margin:0}#popup{color:#fff;text-align:center;z-index:10;background:#000c;border-radius:5px;padding:20px;font-family:Arial,sans-serif;font-size:16px;display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 4px 10px #0000004d}#popup span{font-weight:700}#content{color:#fff;text-align:left;z-index:10;background:#000c;border-radius:5px;max-width:800px;padding:20px;font-size:16px;display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 4px 10px #0000004d}#content h2{font-weight:700}#content ul{padding-left:20px}#content ul li{list-style-type:disc}#content p{margin-top:10px}</style></head><body> <script id="vertexShader" type="vertex">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spencer Sweeney Website</title>
+    <style>body {
+  margin: 0;
+}
+
+#popup {
+  color: #fff;
+  text-align: center;
+  z-index: 10;
+  background: #000c;
+  border-radius: 5px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4px 10px #0000004d;
+}
+
+#popup span {
+  font-weight: bold;
+}
+
+#content {
+  color: #fff;
+  text-align: left;
+  z-index: 10;
+  background: #000c;
+  border-radius: 5px;
+  max-width: 800px;
+  padding: 20px;
+  font-size: 16px;
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4px 10px #0000004d;
+}
+
+#content h2 {
+  font-weight: bold;
+}
+
+#content ul {
+  padding-left: 20px;
+}
+
+#content ul li {
+  list-style-type: disc;
+}
+
+#content p {
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+    <script id="vertexShader" type="vertex">
         void main() {
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
-    </script> <script id="fragmentShader" type="fragment">
+    </script>
+    <script id="fragmentShader" type="fragment">
         void main() {
             gl_FragColor = vec4(1.0, 0.1, 0.3, 1.0);
         }
-    </script> <script src="/index.69850f35.js" type="module"></script> <div id="popup"> Press 'E' to land on <span id="popup-title"></span>. </div> <div id="content" class="content"> <h2 id="content-title">Popup Title</h2> <div id="content-info">  </div> </div> <div id="esc-popup" style="color:#fff;z-index:1000;background:#000000b3;border-radius:5px;padding:10px;display:none;position:absolute;top:10px;left:10px"> Press ESC to return to space </div> <div id="controls-popup" style="color:#fff;z-index:1000;background:#000000b3;border-radius:5px;padding:10px;display:none;position:absolute;top:10px;left:10px"> wasd for movement </div> </body></html>
+    </script>
+    <script src="/index.8e0e1b18.js" defer=""></script>
+    <div id="popup">
+        Press 'E' to land on <span id="popup-title"></span>.
+    </div>
+    <div id="content" class="content">
+        <h2 id="content-title">Popup Title</h2>
+        <div id="content-info">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+    </div>
+    <div id="esc-popup" style="color: #fff; z-index: 1000; background: #000000b3; border-radius: 5px; padding: 10px; display: none; position: absolute; top: 10px; left: 10px">
+        Press ESC to return to space
+    </div>
+    <div id="controls-popup" style="color: #fff; z-index: 1000; background: #000000b3; border-radius: 5px; padding: 10px; display: none; position: absolute; top: 10px; left: 10px">
+        wasd for movement
+    </div>
+</body>
+
+</html>
