@@ -609,77 +609,134 @@ var _planetTexture5Jpg = require("./assets/img/planetTexture5.jpg");
 var _planetTexture5JpgDefault = parcelHelpers.interopDefault(_planetTexture5Jpg);
 var _contentJson = require("./content.json");
 var _contentJsonDefault = parcelHelpers.interopDefault(_contentJson);
-const textureMapSpace = {
-    'planetTexture2': loadTextureSpace((0, _planetTexture2JpgDefault.default)),
-    'planetTexture3': loadTextureSpace((0, _planetTexture3PngDefault.default)),
-    'planetTexture4': loadTextureSpace((0, _planetTexture4JpgDefault.default)),
-    'planetTexture5': loadTextureSpace((0, _planetTexture5JpgDefault.default))
-};
-const textureMapLanded = {
-    'planetTexture2': loadTextureLanded((0, _planetTexture2JpgDefault.default)),
-    'planetTexture3': loadTextureLanded((0, _planetTexture3PngDefault.default)),
-    'planetTexture4': loadTextureLanded((0, _planetTexture4JpgDefault.default)),
-    'planetTexture5': loadTextureLanded((0, _planetTexture5JpgDefault.default))
-};
+const loadingScreen = document.getElementById('loading-screen');
+const loadingText = loadingScreen.querySelector('.loading-text');
+const contentMap = new Map();
+let planetParams = null;
+function showLoadingScreen(message = 'Loading the universe...') {
+    loadingText.textContent = message;
+    loadingScreen.style.display = 'flex';
+    loadingScreen.classList.remove('fade-out');
+}
+function hideLoadingScreen() {
+    loadingScreen.classList.add('fade-out');
+    setTimeout(()=>{
+        loadingScreen.style.display = 'none';
+    }, 500);
+}
+function loadTextureSpace(texturePath) {
+    return new Promise((resolve, reject)=>{
+        const textureLoader = new _three.TextureLoader();
+        textureLoader.load(texturePath, (texture)=>resolve(texture), undefined, (error)=>reject(error));
+    });
+}
+function loadTextureLanded(texturePath) {
+    return new Promise((resolve, reject)=>{
+        const textureLoader = new _three.TextureLoader();
+        textureLoader.load(texturePath, (texture)=>{
+            texture.minFilter = _three.LinearFilter;
+            texture.magFilter = _three.LinearFilter;
+            texture.anisotropy = 16;
+            texture.wrapS = texture.wrapT = _three.RepeatWrapping;
+            texture.repeat.set(10, 10);
+            resolve(texture);
+        }, undefined, (error)=>reject(error));
+    });
+}
+// Initialize textures
+async function initializeTextures() {
+    try {
+        const [spaceTexture2, spaceTexture3, spaceTexture4, spaceTexture5] = await Promise.all([
+            loadTextureSpace((0, _planetTexture2JpgDefault.default)),
+            loadTextureSpace((0, _planetTexture3PngDefault.default)),
+            loadTextureSpace((0, _planetTexture4JpgDefault.default)),
+            loadTextureSpace((0, _planetTexture5JpgDefault.default))
+        ]);
+        const [landedTexture2, landedTexture3, landedTexture4, landedTexture5] = await Promise.all([
+            loadTextureLanded((0, _planetTexture2JpgDefault.default)),
+            loadTextureLanded((0, _planetTexture3PngDefault.default)),
+            loadTextureLanded((0, _planetTexture4JpgDefault.default)),
+            loadTextureLanded((0, _planetTexture5JpgDefault.default))
+        ]);
+        return {
+            space: {
+                'planetTexture2': spaceTexture2,
+                'planetTexture3': spaceTexture3,
+                'planetTexture4': spaceTexture4,
+                'planetTexture5': spaceTexture5
+            },
+            landed: {
+                'planetTexture2': landedTexture2,
+                'planetTexture3': landedTexture3,
+                'planetTexture4': landedTexture4,
+                'planetTexture5': landedTexture5
+            }
+        };
+    } catch (error) {
+        console.error('Error loading textures:', error);
+        throw error;
+    }
+}
 const appManager = new (0, _worldAppManager.WorldAppManager)();
 appManager.AddApp('space', (0, _worldAppManager.SpaceApp));
 appManager.AddApp('planet', (0, _worldAppManager.PlanetApp));
-const contentMap = new Map();
-const planets = [];
-(0, _contentJsonDefault.default).planets.forEach((planet)=>{
-    const { title, contentSections, texturePath, sizeFactor, positionFactor, revolutionSpeedFactor, rotationSpeedFactor } = planet;
-    contentMap.set(title, {
-        title,
-        contentSections,
-        texture: textureMapLanded[texturePath]
-    });
-    planets.push({
-        sizeFactor,
-        positionFactor,
-        revolutionSpeedFactor,
-        rotationSpeedFactor,
-        texture: textureMapSpace[texturePath],
-        title
-    });
-});
-const planetParams = {
-    planets: planets
-};
 // Initialize the SpaceApp on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', ()=>{
-    appManager.SwitchApp('space', planetParams);
+document.addEventListener('DOMContentLoaded', async ()=>{
+    try {
+        showLoadingScreen('Initializing space environment...');
+        const textures = await initializeTextures();
+        const planets = [];
+        (0, _contentJsonDefault.default).planets.forEach((planet)=>{
+            const { title, contentSections, texturePath, sizeFactor, positionFactor, revolutionSpeedFactor, rotationSpeedFactor } = planet;
+            contentMap.set(title, {
+                title,
+                contentSections,
+                texture: textures.landed[texturePath]
+            });
+            planets.push({
+                sizeFactor,
+                positionFactor,
+                revolutionSpeedFactor,
+                rotationSpeedFactor,
+                texture: textures.space[texturePath],
+                title
+            });
+        });
+        planetParams = {
+            planets
+        };
+        appManager.SwitchApp('space', planetParams);
+        hideLoadingScreen();
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        loadingText.textContent = 'Error loading the universe. Please refresh the page.';
+    }
 });
 // Example: Switching between apps dynamically
-document.addEventListener('keydown', (event)=>{
+document.addEventListener('keydown', async (event)=>{
     if (appManager.CurrentState.Name == 'space') {
         if (event.key === 'e' || event.key === 'E') {
             const planet = appManager.CurrentState.LookedAtObject;
-            if (planet) {
+            if (planet) try {
+                showLoadingScreen(`Preparing to land on ${planet.Title}...`);
                 const params = contentMap.get(planet.Title);
+                if (!params) throw new Error(`No content found for planet ${planet.Title}`);
                 appManager.SwitchApp('planet', params);
+                hideLoadingScreen();
+            } catch (error) {
+                console.error('Error landing on planet:', error);
+                loadingText.textContent = 'Error landing on planet. Please try again.';
             }
         }
     }
     if (appManager.CurrentState.Name == 'planet') {
-        if (event.key === 'Escape') appManager.SwitchApp('space', planetParams);
+        if (event.key === 'Escape') {
+            showLoadingScreen('Returning to space...');
+            appManager.SwitchApp('space', planetParams);
+            hideLoadingScreen();
+        }
     }
 });
-function loadTextureSpace(texturePath) {
-    const textureLoader = new _three.TextureLoader();
-    const texture = textureLoader.load(texturePath);
-    return texture;
-}
-function loadTextureLanded(texturePath) {
-    const textureLoader = new _three.TextureLoader();
-    const texture = textureLoader.load(texturePath, ()=>{
-        texture.minFilter = _three.LinearFilter;
-        texture.magFilter = _three.LinearFilter;
-        texture.anisotropy = 16;
-        texture.wrapS = texture.wrapT = _three.RepeatWrapping;
-        texture.repeat.set(10, 10);
-    });
-    return texture;
-}
 
 },{"three":"ktPTu","./mangers/world-app-manager":"h7r4N","./assets/img/planetTexture2.jpg":"1jMlp","./assets/img/planetTexture3.png":"iXUTU","./assets/img/planetTexture4.jpg":"e34M6","./assets/img/planetTexture5.jpg":"fHOPz","./content.json":"2lZ1U","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ktPTu":[function(require,module,exports,__globalThis) {
 /**
@@ -30175,7 +30232,7 @@ var _backPng = require("../assets/img/skybox/back.png");
 var _backPngDefault = parcelHelpers.interopDefault(_backPng);
 var _sunJpeg = require("../assets/img/sun.jpeg");
 var _sunJpegDefault = parcelHelpers.interopDefault(_sunJpeg);
-const SUN_RADIUS = 20;
+const SUN_RADIUS = 50;
 const FOV = 60;
 const ASPECT = 1920 / 1080;
 const NEAR = 1.0;
@@ -31212,7 +31269,7 @@ class SpaceshipController {
     _Init(params) {
         this._params = params;
         this._decceleration = new _three.Vector3(-0.0005, -0.0001, -5);
-        this._acceleration = new _three.Vector3(1, 0.1, 50.0);
+        this._acceleration = new _three.Vector3(1, 0.1, 75.0);
         this._velocity = new _three.Vector3(0, 0, 0);
         this._position = new _three.Vector3();
         this._animations = {};
@@ -31268,7 +31325,7 @@ class SpaceshipController {
             });
             // Store the entire scene as target
             this._target = gltf.scene;
-            this._target.position.set(56, 0, -80);
+            this._target.position.set(100, 0, -150);
             this._params.scene.add(this._target);
             this._CreateFireParticles();
             // Setup animation mixer
@@ -31332,6 +31389,8 @@ class SpaceshipController {
         const _A = new _three.Vector3();
         const _R = controlObject.quaternion.clone();
         const acc = this._acceleration.clone();
+        // Apply shift boost
+        if (this._input._keys.shift) acc.multiplyScalar(2.0); // Double the acceleration when shift is held
         if (this._input._keys.forward) velocity.z += acc.z * timeInSeconds;
         if (this._input._keys.backward) velocity.z -= acc.z * timeInSeconds;
         if (this._input._keys.left) {
@@ -31373,7 +31432,8 @@ class SpaceshipControllerInput {
             forward: false,
             backward: false,
             left: false,
-            right: false
+            right: false,
+            shift: false
         };
         document.addEventListener('keydown', (e)=>this._onKeyDown(e), false);
         document.addEventListener('keyup', (e)=>this._onKeyUp(e), false);
@@ -31392,6 +31452,9 @@ class SpaceshipControllerInput {
             case 68:
                 this._keys.right = true;
                 break;
+            case 16:
+                this._keys.shift = true;
+                break;
         }
     }
     _onKeyUp(event) {
@@ -31407,6 +31470,9 @@ class SpaceshipControllerInput {
                 break;
             case 68:
                 this._keys.right = false;
+                break;
+            case 16:
+                this._keys.shift = false;
                 break;
         }
     }
@@ -34075,12 +34141,12 @@ class Sun {
         const mat = new _three.MeshStandardMaterial({
             map: textureLoader.load(params.texture),
             emissive: new _three.Color(0xffff00),
-            emissiveIntensity: .5,
+            emissiveIntensity: .3,
             emissiveMap: textureLoader.load(params.texture)
         });
         this._sunMesh = new _three.Mesh(geo, mat);
         // Add a Point Light at the Sun's Position
-        const sunLight = new _three.PointLight(0xffffff, 5, 500);
+        const sunLight = new _three.PointLight(0xffffff, 3, 750);
         sunLight.position.set(params.position.x, params.position.y, params.position.z);
         this._params.scene.add(sunLight);
         this._sunMesh.position.set(params.position.x, params.position.y, params.position.z);
@@ -34191,6 +34257,9 @@ class PlanetWorld {
         this._title = params.title;
         this._planetTexture = params.texture;
         this._contentSections = params.contentSections;
+        this._scrollPosition = 0;
+        this._isScrolling = true;
+        this._scrollSpeed = 1;
         this._Initialize();
     }
     _Initialize() {
@@ -34217,16 +34286,103 @@ class PlanetWorld {
         this._LoadAtmosphere();
         this._LoadGround();
         this._LoadContent();
+        this._SetupScrollControls();
         this._mixers = [];
         this._previousRAF = null;
         this._RAF();
     }
     _LoadAtmosphere() {
-        const loader = new (0, _rgbeloaderJs.RGBELoader)();
-        loader.load((0, _skyHDRHdrDefault.default), (texture)=>{
-            texture.mapping = _three.EquirectangularReflectionMapping;
-            this._scene.background = texture;
-            this._scene.environment = texture;
+        // Create a space-like background
+        const spaceGeometry = new _three.SphereGeometry(1000, 32, 32);
+        const spaceMaterial = new _three.ShaderMaterial({
+            uniforms: {
+                time: {
+                    value: 0
+                },
+                colorA: {
+                    value: new _three.Color(0x000000)
+                },
+                colorB: {
+                    value: new _three.Color(0x000033)
+                }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform float time;
+                uniform vec3 colorA;
+                uniform vec3 colorB;
+                varying vec2 vUv;
+                void main() {
+                    float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
+                    float pattern = sin(vUv.x * 10.0 + time) * sin(vUv.y * 10.0 + time) * noise;
+                    vec3 color = mix(colorA, colorB, pattern);
+                    gl_FragColor = vec4(color, 1.0);
+                }
+            `
+        });
+        const spaceSphere = new _three.Mesh(spaceGeometry, spaceMaterial);
+        spaceSphere.material.side = _three.BackSide;
+        this._scene.add(spaceSphere);
+        this._spaceMaterial = spaceMaterial;
+    }
+    _SetupScrollControls() {
+        const content = document.getElementById('content');
+        const crawlContainer = document.querySelector('.crawl-container');
+        // Add scroll controls popup
+        const scrollControls = document.createElement('div');
+        scrollControls.id = 'scroll-controls';
+        scrollControls.style.cssText = `
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            display: none;
+        `;
+        scrollControls.innerHTML = `
+            <h3 style="margin: 0 0 10px 0; color: #4CAF50;">Scroll Controls</h3>
+            <p style="margin: 5px 0;">Space - Pause/Resume Scroll</p>
+            <p style="margin: 5px 0;">Mouse/Trackpad - Manual Scroll</p>
+        `;
+        document.body.appendChild(scrollControls);
+        // Handle space key for pause/resume
+        document.addEventListener('keydown', (e)=>{
+            if (e.code === 'Space') {
+                e.preventDefault();
+                this._isScrolling = !this._isScrolling;
+                if (this._isScrolling) crawlContainer.style.animation = 'crawl 60s linear forwards';
+                else crawlContainer.style.animation = 'none';
+            }
+        });
+        // Handle mouse/trackpad scroll
+        content.addEventListener('wheel', (e)=>{
+            e.preventDefault();
+            this._isScrolling = false;
+            crawlContainer.style.animation = 'none';
+            const scrollAmount = e.deltaY;
+            this._scrollPosition += scrollAmount * 0.5;
+            // Limit scroll position
+            this._scrollPosition = Math.max(-6000, Math.min(0, this._scrollPosition));
+            crawlContainer.style.transform = `rotateX(25deg) translateY(${this._scrollPosition}px)`;
+        });
+        // Show/hide controls on hover
+        content.addEventListener('mouseenter', ()=>{
+            scrollControls.style.display = 'block';
+        });
+        content.addEventListener('mouseleave', ()=>{
+            scrollControls.style.display = 'none';
         });
     }
     _LoadGround() {
@@ -34246,9 +34402,28 @@ class PlanetWorld {
         this._scene.add(plane);
     }
     _LoadContent() {
-        const content1 = document.getElementById('content');
+        const content = document.getElementById('content');
         const contentTitle = document.getElementById('content-title');
         const contentInfo = document.getElementById('content-info');
+        const planetBackgroundCanvas = document.getElementById('planet-background-canvas');
+        const ctx = planetBackgroundCanvas.getContext('2d');
+        // Set canvas size to match window
+        planetBackgroundCanvas.width = window.innerWidth;
+        planetBackgroundCanvas.height = window.innerHeight;
+        // Create a temporary canvas to render the texture
+        if (this._planetTexture && this._planetTexture.image) {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = this._planetTexture.image.width;
+            tempCanvas.height = this._planetTexture.image.height;
+            tempCtx.drawImage(this._planetTexture.image, 0, 0);
+            // Draw the texture to the background canvas
+            ctx.drawImage(tempCanvas, 0, 0, planetBackgroundCanvas.width, planetBackgroundCanvas.height);
+            planetBackgroundCanvas.style.display = 'block';
+        } else {
+            console.log('No valid planet texture available');
+            planetBackgroundCanvas.style.display = 'none';
+        }
         contentInfo.innerHTML = '';
         contentTitle.textContent = this._title;
         const contentSections = this._contentSections;
@@ -34271,7 +34446,12 @@ class PlanetWorld {
             }
             contentInfo.appendChild(sectionContainer);
         });
-        content1.style.display = 'block';
+        content.style.display = 'block';
+        // Reset the crawl animation
+        const crawlContainer = document.querySelector('.crawl-container');
+        crawlContainer.style.animation = 'none';
+        crawlContainer.offsetHeight; // Trigger reflow
+        crawlContainer.style.animation = 'crawl 60s linear forwards';
     }
     _OnWindowResize() {
         this._camera.aspect = window.innerWidth / window.innerHeight;
@@ -34291,6 +34471,8 @@ class PlanetWorld {
     }
     _Step(timeElapsed) {
         if (!this._threejs || !this._scene || !this._camera) return;
+        // Update space background animation
+        if (this._spaceMaterial) this._spaceMaterial.uniforms.time.value += timeElapsed * 0.001;
     }
     Update(timeElapsed) {
         this._Step(timeElapsed);
@@ -34301,11 +34483,14 @@ class PlanetWorld {
         window.removeEventListener('resize', this._OnWindowResize);
         const canvas = this._threejs.domElement;
         if (canvas && canvas.parentElement) canvas.parentElement.removeChild(canvas);
+        const scrollControls = document.getElementById('scroll-controls');
+        if (scrollControls) scrollControls.remove();
         this._threejs = null;
         this._camera = null;
         this._scene = null;
         this._stopRendering = true;
-        content.style.display = 'none';
+        const content = document.getElementById('content');
+        if (content) content.style.display = 'none';
         const popup = document.getElementById('esc-popup');
         if (popup) popup.style.display = 'none';
     }
@@ -34583,7 +34768,7 @@ module.exports = require("52b593caacf085d6").getBundleURL('bOwwI') + "planetText
 module.exports = require("6d78a5ad0ac9a39").getBundleURL('bOwwI') + "planetTexture5.475d90a5.jpg" + "?" + Date.now();
 
 },{"6d78a5ad0ac9a39":"lgJ39"}],"2lZ1U":[function(require,module,exports,__globalThis) {
-module.exports = JSON.parse('{"planets":[{"title":"Education","contentSections":[{"sectionTitle":"Northeastern University","description":"Candidate for Bachelor of Science in Computer Science and Computer Engineering, May 2026","items":["GPA: 3.96/4.0","Relevant Coursework: Object Oriented Design, Algorithms & Data Structures, Database Design, Computer Systems, Networks & Distributed Systems, Differential Equations and Linear Algebra, Calculus III","Activities: Vice-President Men\u2019s Club Volleyball - Won 2022 National Championship","Awards: Dean\u2019s Scholarship, Dean\u2019s List (AllSemesters)"]}],"sizeFactor":0.4,"positionFactor":2,"revolutionSpeedFactor":0.00005,"rotationSpeedFactor":0.0005,"texturePath":"planetTexture4"},{"title":"Technical Skills","contentSections":[{"sectionTitle":"Programming Languages","description":"","items":["Java","Kotlin","Python","C++","SQL(MySQL,SQLite)","Javascript(ReactJS,NodeJS)"]},{"sectionTitle":"Technologies & Frameworks","description":"","items":["Git","Docker","AWS","RESTAPIs","TCP/IP","PyTorch","YOLO","SAM","OpenCV"]},{"sectionTitle":"Systems","description":"","items":["Linux(Ubuntu)","macOS","Windows"]}],"sizeFactor":0.3,"positionFactor":4,"revolutionSpeedFactor":0.0002,"rotationSpeedFactor":0.0007,"texturePath":"planetTexture3"},{"title":"Work Experience","contentSections":[{"sectionTitle":"Amazon Robotics","description":"Software Development Engineer Co-op, June 2024 - December 2024","items":["Collaborated with a small team on an in-van process technology system in Amazon FTR\u2019s Innovation Lab","Redesigned and refactored the codebase to a microservice-based backend in Java and Kotlin, enhancing code quality, scalability, maintainability, and efficiency","Integrated the system with Amazon\u2019s production ecosystem utilizing AWS Lambdas, REST APIs, and Docker to prepare the system and enable edge deployment for on-road deliveries","Conducted on-road testing to validate system performance, focusing on software and hardware resiliency, seek-time optimization, and a seamless user experience","Integrated advanced object segmentation and tracking models with LLM-based planning to enhance real-time robotic environment modeling"]},{"sectionTitle":"Amazon Robotics","description":"Software Development Engineer Co-op, July 2023 - December 2023","items":["Developed a proof of concept in-van delivery process technology system to improve package delivery efficiency and accuracy with three interns in Amazon FTR\u2019s Innovation Lab","Spearheaded the creation of an automation system for package seeking using Python and an internal Amazon Robotics computer vision system","Built a frontend with JavaScript and React, incorporating feedback from end users to improve functionality","Coordinated with contractors on a comparative time-study; achieving a notable reduction in package delivery time and positive user experience feedback","Presented and demonstrated the system to the CEO of Amazon, receiving positive feedback and support for further development"]}],"sizeFactor":0.7,"positionFactor":7,"revolutionSpeedFactor":0.00009,"rotationSpeedFactor":0.00009,"texturePath":"planetTexture2"},{"title":"Projects","contentSections":[{"sectionTitle":"Transport Layer Protocol","description":"Developer, March 2023 - April 2023","items":["Designed and implemented a Python-based transport protocol leveraging TCP principles, ensuring reliable, ordered data delivery without duplicates or errors","Conducted rigorous testing on a network emulator to validate performance under variable network conditions"]},{"sectionTitle":"Image Manipulation and Enhancement Editor","description":"Developer, October 2022 - December 2022","items":["Created an image editing application in Java using the Model-View-Controller (MVC) architecture, enabling complex filter and transformations","Designed and executed a comprehensive test suite using JUnit, including both unit and integration tests"]}],"sizeFactor":0.5,"positionFactor":10,"revolutionSpeedFactor":0.0001,"rotationSpeedFactor":0.00007,"texturePath":"planetTexture5"}]}');
+module.exports = JSON.parse("{\"planets\":[{\"title\":\"Education\",\"contentSections\":[{\"sectionTitle\":\"Northeastern University\",\"description\":\"Candidate for Bachelor of Science in Computer Science and Computer Engineering, May 2026\",\"items\":[\"GPA: 3.96/4.0\",\"Relevant Coursework: Reinforcement Learning, Software Engineering, Object Oriented Design, Algorithms & Data Structures, Database Design, Networks & Distributed Systems, Linear Algebra, Calculus III\",\"Activities: Ready Stage Coordinator - IDEA (Northeastern's Venture Accelerator), Vice-President Men's Club Volleyball - Won 2022 National Championship\",\"Awards: Dean's Scholarship, Dean's List (AllSemesters)\"]}],\"sizeFactor\":0.3,\"positionFactor\":2,\"revolutionSpeedFactor\":0.00001,\"rotationSpeedFactor\":0.00015,\"texturePath\":\"planetTexture4\"},{\"title\":\"Technical Skills\",\"contentSections\":[{\"sectionTitle\":\"Programming Languages\",\"description\":\"\",\"items\":[\"Java\",\"Kotlin\",\"Python\",\"C++\",\"SQL(MySQL,SQLite)\",\"Javascript(ReactJS,NodeJS)\",\"Typescript\"]},{\"sectionTitle\":\"Technologies & Frameworks\",\"description\":\"\",\"items\":[\"Git\",\"Docker\",\"AWS\",\"REST APIs\",\"TCP/IP\",\"PyTorch\",\"YOLO\",\"SAM\",\"OpenCV\",\"GitHub Actions\",\"MongoDB\"]},{\"sectionTitle\":\"Systems\",\"description\":\"\",\"items\":[\"Linux(Ubuntu)\",\"macOS\",\"Windows\"]}],\"sizeFactor\":0.4,\"positionFactor\":10,\"revolutionSpeedFactor\":0.000018,\"rotationSpeedFactor\":0.00021,\"texturePath\":\"planetTexture3\"},{\"title\":\"Work Experience\",\"contentSections\":[{\"sectionTitle\":\"Amazon Robotics\",\"description\":\"Software Development Engineer Co-op, June 2024 - December 2024\",\"items\":[\"Collaborated with a small team on an in-van process technology system in Amazon FTR's Innovation Lab\",\"Redesigned and refactored the codebase to a microservice-based backend in Java and Kotlin, enhancing code quality, scalability, maintainability, and efficiency\",\"Integrated the system with Amazon's production ecosystem utilizing AWS Lambdas, REST APIs, and Docker to prepare the system and enable edge deployment for on-road deliveries\",\"Conducted on-road testing to validate system performance, focusing on software and hardware resiliency, seek-time optimization, and a seamless user experience\",\"Integrated advanced object segmentation and tracking models with LLM-based planning to enhance real-time robotic environment modeling\"]},{\"sectionTitle\":\"Amazon Robotics\",\"description\":\"Software Development Engineer Co-op, July 2023 - December 2023\",\"items\":[\"Developed a proof of concept in-van delivery process technology system to improve package delivery efficiency and accuracy with three interns in Amazon FTR's Innovation Lab\",\"Spearheaded the creation of an automation system for package seeking using Python and an internal Amazon Robotics computer vision system\",\"Built a frontend with JavaScript and React, incorporating feedback from end users to improve functionality\",\"Coordinated with contractors on a comparative time-study; achieving a notable reduction in package delivery time and positive user experience feedback\",\"Presented and demonstrated the system to the CEO of Amazon, receiving positive feedback and support for further development\"]}],\"sizeFactor\":0.8,\"positionFactor\":7,\"revolutionSpeedFactor\":0.000006,\"rotationSpeedFactor\":0.000027,\"texturePath\":\"planetTexture2\"},{\"title\":\"Projects\",\"contentSections\":[{\"sectionTitle\":\"BeyondTheBinary\",\"description\":\"Developer, February 2025 - April 2025\",\"items\":[\"Developed a full-stack TypeScript application using React and Node.js, implementing a Stack Overflow-like platform with real-time messaging, user authentication, and voting system\",\"Developed a scalable backend API with MongoDB integration, handling user authentication, question/answer management, and real-time game state synchronization\"]},{\"sectionTitle\":\"VolleyVision\",\"description\":\"Developer, December 2024 - February 2025\",\"items\":[\"Developed a volleyball film analysis tool in Python using object detection and parabolic tracking to classify ball motion, segment active play vs. downtime, and analyze player movement.\",\"Captured 99% of plays while reducing video runtime by 49%, enhancing film analysis efficiency.\",\"https://github.com/spencersweeney/volleyvision\"]},{\"sectionTitle\":\"Transport Layer Protocol\",\"description\":\"Developer, March 2023 - April 2023\",\"items\":[\"Designed and implemented a Python-based transport protocol leveraging TCP principles, ensuring reliable, ordered data delivery without duplicates or errors\",\"Conducted rigorous testing on a network emulator to validate performance under variable network conditions\"]},{\"sectionTitle\":\"Image Manipulation and Enhancement Editor\",\"description\":\"Developer, October 2022 - December 2022\",\"items\":[\"Created an image editing application in Java using the Model-View-Controller (MVC) architecture, enabling complex filter and transformations\",\"Designed and executed a comprehensive test suite using JUnit, including both unit and integration tests\"]}],\"sizeFactor\":0.5,\"positionFactor\":5,\"revolutionSpeedFactor\":0.00004,\"rotationSpeedFactor\":0.000021,\"texturePath\":\"planetTexture5\"},{\"title\":\"IDEA\",\"contentSections\":[{\"sectionTitle\":\"Northeastern's Venture Accelerator\",\"description\":\"Ready Stage Coordinator, December 2024 - Present\",\"items\":[\"Support 200+ early-stage startups in Northeastern's student-led venture accelerator, guiding them through problem/solution validation, market analysis, and prototype development\",\"Advise founders on refining business models, identifying key customer segments, and MVP iteration\",\"Organize Orientations, Venture Roundtables, and workshops, to equip founders with startup fundamentals\",\"Manage relationships between founders, mentors, and resources, to move ventures from idea to execution\"]}],\"sizeFactor\":0.7,\"positionFactor\":12,\"revolutionSpeedFactor\":0.00003,\"rotationSpeedFactor\":0.000021,\"texturePath\":\"planetTexture5\"}]}");
 
 },{}]},["cwGBK","brDbb"], "brDbb", "parcelRequire94c2")
 
