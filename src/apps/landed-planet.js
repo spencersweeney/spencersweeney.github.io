@@ -1,191 +1,425 @@
-import * as THREE from 'three';
-
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-
-import skyHDR from '../assets/img/skyHDR.hdr';
-
-const FOV = 60;
-const ASPECT = 1920 / 1080;
-const NEAR = 1;
-const FAR = 1000.0;
+import { CrawlController } from "./crawl-controller";
 
 export class PlanetWorld {
     constructor(params) {
         this._title = params.title;
-        this._planetTexture = params.texture;
-        this._contentSections = params.contentSections;
+        this._crawlTitle = params.crawlTitle;
+        this._crawlText = params.crawlText;
+        this._crawlIntro = params.crawlIntro;
+        this._layout = params.layout || 'crawl';
+        this._contactIntro = params.contactIntro;
+        this._contactHeading = params.contactHeading;
+        this._contactDetails = params.contactDetails;
+        this._stars = [];
+        this._frameId = null;
+        this._elements = {};
+        this._crawlContainer = null;
+        this._crawlController = null;
+        this._overlayHideTimeout = null;
+        this._overlayFadeTimeout = null;
+        this._resizeHandler = this._OnWindowResize.bind(this);
+        this._animateStars = this._AnimateStars.bind(this);
         this._Initialize();
     }
 
     _Initialize() {
-        this._threejs = new THREE.WebGLRenderer({
-            antialias: true,
-        });
-        this._threejs.outputEncoding = THREE.sRGBEncoding;
-        this._threejs.shadowMap.enabled = true;
-        this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
-        this._threejs.setPixelRatio(window.devicePixelRatio);
-        this._threejs.setSize(window.innerWidth, window.innerHeight);
+        this._CacheElements();
+        this._SetupUI();
+        this._PrepareStars();
 
-        document.body.appendChild(this._threejs.domElement);
+        window.addEventListener('resize', this._resizeHandler, false);
+        this._frameId = requestAnimationFrame(this._animateStars);
 
-        window.addEventListener('resize', () => {
-            this._OnWindowResize();
-        }, false);
+        if (this._layout === 'contact') {
+            this._RenderContactPanel();
+            return;
+        }
 
-        this._camera = new THREE.PerspectiveCamera(FOV, ASPECT, NEAR, FAR);
-        this._camera.position.set(25, 20, 25);
-        this._camera.rotateX(Math.PI / 12);
+        this._RenderContent();
+        this._PlayIntroSequence();
+    }
 
-        this._scene = new THREE.Scene();
+    _CacheElements() {
+        this._elements.content = document.getElementById('content');
+        this._elements.starCanvas = document.getElementById('crawl-stars');
+        this._elements.introOverlay = document.getElementById('intro-overlay');
+        this._elements.introText = document.getElementById('intro-text');
+        this._elements.crawlContainer = document.querySelector('.crawl-container');
+        this._elements.crawlTitle = document.getElementById('crawl-title');
+        this._elements.contentInfo = document.getElementById('content-info');
+        this._elements.contactPanel = document.getElementById('contact-panel');
+        this._elements.contactTitle = document.getElementById('contact-title');
+        this._elements.contactIntro = document.getElementById('contact-intro');
+        this._elements.contactDetails = document.getElementById('contact-details');
+        this._crawlContainer = this._elements.crawlContainer;
 
-        const light = new THREE.AmbientLight(0xFFFFFF, 0.25);
-        this._scene.add(light);
+        if (this._crawlContainer) {
+            this._crawlController = new CrawlController(this._crawlContainer);
+        }
+    }
 
+    _SetupUI() {
         const popup = document.getElementById('esc-popup');
         if (popup) {
             popup.style.display = 'block';
         }
 
-        this._LoadAtmosphere();
-        this._LoadGround();
-        this._LoadContent();
-
-        this._mixers = [];
-        this._previousRAF = null;
-
-        this._RAF();
-    }
-
-    _LoadAtmosphere() {
-        const loader = new RGBELoader();
-        loader.load(skyHDR, (texture) => {
-            texture.mapping = THREE.EquirectangularReflectionMapping;
-            this._scene.background = texture;
-            this._scene.environment = texture;
-        });
-    }
-
-    _LoadGround() {
-        const planeGeometry = new THREE.PlaneGeometry(1000, 1000, 100, 100);
-
-        const planeMaterial = new THREE.MeshStandardMaterial({
-            map: this._planetTexture,
-            roughness: 0.9, 
-            metalness: 0.2,
-            wireframe: false,
-        });
-
-        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.rotation.x = -Math.PI / 2;
-
-        // Use a Perlin noise function for terrain displacement
-        const vertices = planeGeometry.attributes.position.array;
-        for (let i = 0; i < vertices.length; i += 3) {
-            vertices[i + 2] = Math.random() * 5; // Displace z for rough terrain
+        if (this._elements.content) {
+            this._elements.content.style.display = 'block';
         }
-        planeGeometry.computeVertexNormals(); // Recompute normals for lighting
-        this._scene.add(plane);
     }
 
-    _LoadContent() {
-        const content = document.getElementById('content');
-        const contentTitle = document.getElementById('content-title');
-        const contentInfo = document.getElementById('content-info');
+    _PrepareStars() {
+        const canvas = this._elements.starCanvas;
+        if (!canvas) {
+            return;
+        }
 
-        contentInfo.innerHTML = '';
+        this._ctx = canvas.getContext('2d');
+        this._ResizeCanvas();
+        this._CreateStars();
+    }
 
-        contentTitle.textContent = this._title;
+    _ResizeCanvas() {
+        const canvas = this._elements.starCanvas;
+        if (!canvas) {
+            return;
+        }
 
-        const contentSections = this._contentSections;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
 
-        contentSections.forEach(section => {
-            const sectionContainer = document.createElement('div');
+    _CreateStars() {
+        const canvas = this._elements.starCanvas;
+        if (!canvas) {
+            return;
+        }
 
-            const sectionTitle = document.createElement('h3');
-            sectionTitle.textContent = section.sectionTitle;
-            sectionContainer.appendChild(sectionTitle);
+        const starCount = Math.floor((canvas.width + canvas.height) * 0.4);
+        this._stars = Array.from({ length: starCount }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 1.2 + 0.2,
+            alpha: Math.random(),
+            twinkle: (Math.random() * 0.02) + 0.005,
+        }));
+    }
 
-            const sectionDescription = document.createElement('p');
-            sectionDescription.textContent = section.description;
-            sectionContainer.appendChild(sectionDescription);
+    _AnimateStars() {
+        if (!this._ctx || !this._elements.starCanvas) {
+            return;
+        }
 
-            if (section.items && section.items.length > 0) {
-                const ul = document.createElement('ul');
-                section.items.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    ul.appendChild(li);
-                });
-                sectionContainer.appendChild(ul);
+        const canvas = this._elements.starCanvas;
+        this._ctx.fillStyle = '#000';
+        this._ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        this._stars.forEach((star) => {
+            star.alpha += star.twinkle;
+            if (star.alpha <= 0 || star.alpha >= 1) {
+                star.twinkle *= -1;
             }
 
-            contentInfo.appendChild(sectionContainer);
+            this._ctx.beginPath();
+            this._ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+            this._ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            this._ctx.fill();
         });
 
-        content.style.display = 'block';
+        this._frameId = requestAnimationFrame(this._animateStars);
+    }
+
+    _RenderContent() {
+        if (this._layout === 'contact') {
+            return;
+        }
+
+        const { crawlTitle, contentInfo } = this._elements;
+
+        if (crawlTitle) {
+            crawlTitle.textContent = this._crawlTitle || '';
+            crawlTitle.style.display = this._crawlTitle ? 'block' : 'none';
+        }
+
+        if (contentInfo) {
+            contentInfo.innerHTML = '';
+            const paragraphs = (this._crawlText || '')
+                .split('\n')
+                .map((text) => text.trim())
+                .filter((text) => text.length > 0);
+
+            if (paragraphs.length === 0) {
+                const fallback = document.createElement('p');
+                fallback.textContent = 'Incoming transmission unavailable.';
+                contentInfo.appendChild(fallback);
+            } else {
+                paragraphs.forEach((text) => {
+                    const paragraph = document.createElement('p');
+                    paragraph.appendChild(this._CreateLinkAwareFragment(text));
+                    contentInfo.appendChild(paragraph);
+                });
+            }
+        }
+    }
+
+    _RenderContactPanel() {
+        const {
+            contactPanel,
+            contactTitle,
+            contactIntro,
+            contactDetails,
+            starCanvas,
+            introOverlay,
+            crawlContainer
+        } = this._elements;
+
+        if (!contactPanel || !contactTitle || !contactIntro || !contactDetails) {
+            return;
+        }
+
+        if (starCanvas) {
+            starCanvas.style.display = 'block';
+        }
+        if (introOverlay) {
+            introOverlay.style.display = 'none';
+        }
+        if (crawlContainer) {
+            crawlContainer.style.display = 'none';
+        }
+
+        contactPanel.style.display = 'flex';
+        contactTitle.textContent = this._contactHeading || this._title || 'Mission Control';
+        contactIntro.textContent = this._contactIntro || 'Placeholder intro text for mission control.';
+        contactDetails.innerHTML = '';
+
+        if (Array.isArray(this._contactDetails) && this._contactDetails.length > 0) {
+            this._contactDetails.forEach((entry) => {
+                if (!entry) {
+                    return;
+                }
+
+                const row = document.createElement('div');
+                row.className = 'contact-detail-row';
+
+                const label = document.createElement('span');
+                label.className = 'contact-detail-label';
+                label.textContent = entry.label || 'Channel';
+
+                const value = document.createElement('span');
+                value.className = 'contact-detail-value';
+
+                const formattedValue = this._CreateContactValueElement(entry.value);
+                value.appendChild(formattedValue);
+
+                row.appendChild(label);
+                row.appendChild(value);
+                contactDetails.appendChild(row);
+            });
+        } else {
+            const fallback = document.createElement('div');
+            fallback.className = 'contact-detail-row';
+            fallback.textContent = 'Update contactDetails in content.json to show channels here.';
+            contactDetails.appendChild(fallback);
+        }
+    }
+
+    _CreateContactValueElement(value) {
+        const safeValue = (value || '').trim();
+
+        if (/^https?:\/\//i.test(safeValue)) {
+            const link = document.createElement('a');
+            link.href = safeValue;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = safeValue.replace(/^https?:\/\//i, '');
+            return link;
+        }
+
+        if (/^[\w-.]+@[\w-]+\.\w+$/i.test(safeValue)) {
+            const link = document.createElement('a');
+            link.href = `mailto:${safeValue}`;
+            link.textContent = safeValue;
+            return link;
+        }
+
+        return document.createTextNode(safeValue || 'TBD');
+    }
+
+    _CreateLinkAwareFragment(text) {
+        const fragment = document.createDocumentFragment();
+        if (!text) {
+            return fragment;
+        }
+
+        const pattern = /(https?:\/\/[^\s]+)|([\w.-]+@[\w.-]+\.\w+)/gi;
+        let lastIndex = 0;
+        let match;
+
+        while ((match = pattern.exec(text)) !== null) {
+            if (match.index > lastIndex) {
+                fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+            }
+
+            const token = match[0];
+            if (token.toLowerCase().startsWith('http')) {
+                const link = document.createElement('a');
+                link.href = token;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = token.replace(/^https?:\/\//i, '');
+                fragment.appendChild(link);
+            } else {
+                const link = document.createElement('a');
+                link.href = `mailto:${token}`;
+                link.textContent = token;
+                fragment.appendChild(link);
+            }
+
+            lastIndex = pattern.lastIndex;
+        }
+
+        if (lastIndex < text.length) {
+            fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+        }
+
+        return fragment;
+    }
+
+    _PlayIntroSequence() {
+        const introOverlay = this._elements.introOverlay;
+        const introText = this._elements.introText;
+        const crawlContainer = this._crawlContainer || document.querySelector('.crawl-container');
+
+        if (this._overlayHideTimeout) {
+            clearTimeout(this._overlayHideTimeout);
+            this._overlayHideTimeout = null;
+        }
+
+        if (this._overlayFadeTimeout) {
+            clearTimeout(this._overlayFadeTimeout);
+            this._overlayFadeTimeout = null;
+        }
+
+        if (crawlContainer) {
+            crawlContainer.style.visibility = 'hidden';
+            crawlContainer.style.animation = 'none';
+            crawlContainer.style.transform = '';
+        }
+
+        if (this._crawlController) {
+            this._crawlController.reset();
+        }
+
+        if (introOverlay && introText) {
+            introText.textContent = (this._crawlIntro && this._crawlIntro.length > 0)
+                ? this._crawlIntro
+                : 'A long time ago in a galaxy far, far away...';
+            introOverlay.style.display = 'flex';
+            introOverlay.style.opacity = '1';
+            introOverlay.classList.remove('fade-out');
+        }
+
+        const introDuration = 2000;
+        const fadeDuration = 800;
+
+        this._overlayHideTimeout = setTimeout(() => {
+            if (introOverlay) {
+                introOverlay.classList.add('fade-out');
+                this._overlayFadeTimeout = setTimeout(() => {
+                    introOverlay.style.display = 'none';
+                    this._StartCrawlAnimation();
+                }, fadeDuration);
+            } else {
+                this._StartCrawlAnimation();
+            }
+        }, introDuration);
+    }
+
+    _StartCrawlAnimation() {
+        const crawlContainer = this._crawlContainer || document.querySelector('.crawl-container');
+
+        if (!crawlContainer) {
+            return;
+        }
+
+        crawlContainer.style.visibility = 'visible';
+        crawlContainer.style.animation = 'none';
+        crawlContainer.style.transform = 'rotateX(45deg) translateY(0) translateZ(0)';
+        crawlContainer.offsetHeight; // Trigger reflow
+
+        if (this._crawlController) {
+            this._crawlController.start();
+        } else {
+            crawlContainer.style.animation = 'crawl 120s linear forwards';
+        }
     }
 
     _OnWindowResize() {
-        this._camera.aspect = window.innerWidth / window.innerHeight;
-        this._camera.updateProjectionMatrix();
-        this._threejs.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    _RAF() {
-        if (this._stopRendering) {
-            return;
-        }
-
-        requestAnimationFrame((t) => {
-            if (this._stopRendering) {
-                return;
-            }
-
-            if (this._previousRAF === null) {
-                this._previousRAF = t;
-            }
-
-            this._RAF(); 
-            this._threejs.render(this._scene, this._camera); 
-            this._Step(t - this._previousRAF); 
-            this._previousRAF = t; 
-        });
-    }
-
-
-    _Step(timeElapsed) {
-        if (!this._threejs || !this._scene || !this._camera) {
-            return;
-        }
+        this._ResizeCanvas();
+        this._CreateStars();
     }
 
     Update(timeElapsed) {
-        this._Step(timeElapsed);
+        // No-op: the crawl animation is CSS-driven and the stars animate via RAF.
     }
 
     Cleanup() {
-        if (this._threejs) {
-            this._threejs.dispose();
+        if (this._frameId) {
+            cancelAnimationFrame(this._frameId);
+            this._frameId = null;
         }
-        if (this._scene) {
-            while (this._scene.children.length > 0) {
-                this._scene.remove(this._scene.children[0]);
-            }
+
+        window.removeEventListener('resize', this._resizeHandler);
+
+        if (this._overlayHideTimeout) {
+            clearTimeout(this._overlayHideTimeout);
+            this._overlayHideTimeout = null;
         }
-        window.removeEventListener('resize', this._OnWindowResize);
-        const canvas = this._threejs.domElement;
-        if (canvas && canvas.parentElement) {
-            canvas.parentElement.removeChild(canvas);
+
+        if (this._overlayFadeTimeout) {
+            clearTimeout(this._overlayFadeTimeout);
+            this._overlayFadeTimeout = null;
         }
-        this._threejs = null;
-        this._camera = null;
-        this._scene = null;
-        this._stopRendering = true;
-        content.style.display = 'none';
+
+        if (this._elements.content) {
+            this._elements.content.style.display = 'none';
+        }
+
+        if (this._elements.starCanvas) {
+            this._elements.starCanvas.style.display = '';
+        }
+
+        if (this._elements.introOverlay) {
+            this._elements.introOverlay.style.display = 'none';
+            this._elements.introOverlay.classList.remove('fade-out');
+        }
+
+        if (this._elements.contactPanel) {
+            this._elements.contactPanel.style.display = 'none';
+        }
+        if (this._elements.contactDetails) {
+            this._elements.contactDetails.innerHTML = '';
+        }
+
+        if (this._crawlContainer) {
+            this._crawlContainer.style.display = '';
+            this._crawlContainer.style.visibility = 'hidden';
+            this._crawlContainer.style.animation = 'none';
+            this._crawlContainer.style.transform = '';
+        }
+
+        if (this._crawlController) {
+            this._crawlController.destroy();
+            this._crawlController = null;
+        }
+
         const popup = document.getElementById('esc-popup');
         if (popup) {
             popup.style.display = 'none';
         }
+
+        this._stars = [];
+        this._ctx = null;
     }
 }

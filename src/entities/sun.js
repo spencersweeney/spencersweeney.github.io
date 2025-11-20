@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+
+import { loadLabelFont } from '../utils/label-font';
 
 export class Sun {
     constructor(params) {
@@ -13,13 +14,13 @@ export class Sun {
         const mat = new THREE.MeshStandardMaterial({
             map: textureLoader.load(params.texture),
             emissive: new THREE.Color(0xffff00),
-            emissiveIntensity: .5,
+            emissiveIntensity: .3,
             emissiveMap: textureLoader.load(params.texture),
         });
         this._sunMesh = new THREE.Mesh(geo, mat);
 
         // Add a Point Light at the Sun's Position
-        const sunLight = new THREE.PointLight(0xffffff, 5, 500);
+        const sunLight = new THREE.PointLight(0xffffff, 1.5, 750);
         sunLight.position.set(
             params.position.x,
             params.position.y,
@@ -39,14 +40,20 @@ export class Sun {
         return this._sunMesh.position;
     }
 
+    get UUID() {
+        return this._sunMesh.uuid;
+    }
+
     get Title() {
         return this._title;
     }
 
+    get RaycastObject() {
+        return this._sunMesh;
+    }
+
     addTitle(text) {
         this._title = text;
-
-        const loader = new FontLoader();
 
         // Remove existing text mesh if it exists
         if (this._textMesh) {
@@ -56,7 +63,7 @@ export class Sun {
             this._textMesh = null;
         }
 
-        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+        loadLabelFont().then((font) => {
 
             const textGeometry = new TextGeometry(text, {
                 font: font,
@@ -86,9 +93,10 @@ export class Sun {
             this._textMesh.position.y += 1.5 * this._params.radius;
             this._textMesh.scale.x = this._calcTextXScale(boundingBox);
             this._textMesh.scale.z = this._calcTextZScale(boundingBox);
-            this._textMesh.castShadow = true;
 
             this._params.scene.add(this._textMesh);
+        }).catch((error) => {
+            console.error('Failed to load sun label font.', error);
         });
     }
 

@@ -27,7 +27,7 @@ export class SpaceshipController {
     _Init(params) {
         this._params = params;
         this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
-        this._acceleration = new THREE.Vector3(1, 0.1, 50.0);
+        this._acceleration = new THREE.Vector3(1, 0.1, 75.0);
         this._velocity = new THREE.Vector3(0, 0, 0);
         this._position = new THREE.Vector3();
 
@@ -104,7 +104,7 @@ export class SpaceshipController {
 
             // Store the entire scene as target
             this._target = gltf.scene;
-            this._target.position.set(56, 0, -80);
+            this._target.position.set(100, 0, -150);
             this._params.scene.add(this._target);
 
             this._CreateFireParticles();
@@ -195,6 +195,10 @@ export class SpaceshipController {
         const _R = controlObject.quaternion.clone();
 
         const acc = this._acceleration.clone();
+        // Apply shift boost
+        if (this._input._keys.shift) {
+            acc.multiplyScalar(2.0); // Double the acceleration when shift is held
+        }
 
         if (this._input._keys.forward) {
             velocity.z += acc.z * timeInSeconds;
@@ -258,6 +262,7 @@ class SpaceshipControllerInput {
             backward: false,
             left: false,
             right: false,
+            shift: false,
         };
         document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
         document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
@@ -277,6 +282,9 @@ class SpaceshipControllerInput {
             case 68: // d
                 this._keys.right = true;
                 break;
+            case 16: // shift
+                this._keys.shift = true;
+                break;
         }
     }
 
@@ -293,6 +301,9 @@ class SpaceshipControllerInput {
                 break;
             case 68: // d
                 this._keys.right = false;
+                break;
+            case 16: // shift
+                this._keys.shift = false;
                 break;
         }
     }

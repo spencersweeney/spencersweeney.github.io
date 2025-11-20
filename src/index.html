@@ -6,9 +6,246 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spencer Sweeney Website</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         body {
-            margin: 0
+            margin: 0;
+            background-color: #050608;
+            overflow: hidden;
+            font-family: 'Share Tech Mono', Arial, sans-serif;
+            color: #e3ddc6;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(255, 188, 74, 0.05), transparent 45%),
+                linear-gradient(135deg, rgba(32, 38, 48, 0.9), rgba(10, 12, 14, 0.95));
+        }
+
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            background-color: rgba(5, 6, 8, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            color: white;
+            text-align: center;
+            background:
+                linear-gradient(215deg, rgba(19, 22, 28, 0.95), rgba(3, 4, 7, 0.98)),
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.02),
+                    rgba(255, 255, 255, 0.02) 2px,
+                    transparent 2px,
+                    transparent 4px
+                );
+            overflow-y: auto;
+        }
+
+        .welcome-content {
+            width: min(520px, 90vw);
+            padding: clamp(10px, 5vw, 28px);
+            border: 2px solid rgba(255, 188, 74, 0.35);
+            border-radius: 22px;
+            background: linear-gradient(150deg, rgba(22, 24, 28, 0.96), rgba(12, 14, 18, 0.9));
+            box-shadow:
+                0 15px 45px rgba(0, 0, 0, 0.75),
+                inset 0 0 60px rgba(255, 188, 74, 0.08);
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .welcome-content::before,
+        .welcome-content::after {
+            content: '';
+            position: absolute;
+            inset: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            pointer-events: none;
+        }
+
+        .welcome-content::after {
+            inset: 5px;
+            border-color: rgba(255, 188, 74, 0.25);
+        }
+
+        .controls-section {
+            background: linear-gradient(180deg, rgba(34, 39, 47, 0.85), rgba(15, 17, 21, 0.95));
+            padding: clamp(18px, 5vw, 28px);
+            border-radius: 16px;
+            margin: 20px 0;
+            border: 1px solid rgba(214, 179, 118, 0.4);
+            box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.35);
+            display: grid;
+            gap: 16px;
+            position: relative;
+        }
+
+        .controls-section h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            letter-spacing: 0.25em;
+            color: #ffe468;
+        }
+
+        .control-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(12, 14, 18, 0.95), rgba(22, 24, 27, 0.75));
+            border: 1px solid rgba(255, 228, 104, 0.35);
+            box-shadow:
+                inset 0 0 15px rgba(0, 0, 0, 0.6),
+                0 3px 12px rgba(0, 0, 0, 0.45);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            position: relative;
+        }
+
+        .control-item span:first-child {
+            text-align: left;
+            color: #f4eed9;
+            font-size: 0.95rem;
+        }
+
+        .control-key {
+            background: rgba(24, 27, 33, 0.95);
+            padding: 6px 16px;
+            border-radius: 6px;
+            margin-left: 10px;
+            color: #ffe468;
+            font-weight: bold;
+            box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 228, 104, 0.45);
+            justify-self: flex-end;
+        }
+
+        #takeoff-button {
+            background: linear-gradient(120deg, #c26b16, #f5c451);
+            color: #1b1407;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.05em;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 15px 35px rgba(26, 15, 0, 0.6), inset 0 0 12px rgba(255, 255, 255, 0.1);
+            font-family: 'Orbitron', sans-serif;
+            border: 1px solid rgba(255, 228, 104, 0.6);
+        }
+
+        #takeoff-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 20px 45px rgba(26, 15, 0, 0.65);
+        }
+
+        #takeoff-button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35);
+            filter: saturate(0.6);
+        }
+
+        .welcome-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .loading-status {
+            width: 100%;
+        }
+
+        .loading-bar-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45);
+        }
+
+        .loading-bar-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(120deg, #f5c451, #c26b16);
+            transition: width 0.3s ease;
+        }
+
+        .loading-bar-text {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #ffe468;
+        }
+
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 12000;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            margin-top: 10px;
         }
 
         #popup {
@@ -34,40 +271,371 @@
 
         #content {
             display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 5px;
-            text-align: left;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
             z-index: 10;
-            font-size: 16px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
+            overflow: hidden;
+            background: #000;
+            perspective: 600px;
         }
 
-        #content h2 {
+        #crawl-stars {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #intro-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            font-family: "Arial Black", Arial, sans-serif;
+            color: #4ec5ff;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 2em;
+            text-align: left;
+            opacity: 1;
+            transition: opacity 0.8s ease-in;
+        }
+
+        #intro-overlay.fade-out {
+            opacity: 0;
+        }
+
+        #intro-text {
+            max-width: 65%;
+            margin: 0;
+        }
+
+        .crawl-container {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: 150% 100%;
+            visibility: hidden;
+        }
+
+        @keyframes crawl {
+            0% {
+                transform: rotateX(45deg) translateY(0) translateZ(0);
+            }
+            100% {
+                transform: rotateX(45deg) translateY(-8000px) translateZ(-0);
+            }
+        }
+
+        .crawl-content {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 100%;
+            color: #fcdc3c;
+            font-family: "Arial Black", Arial, sans-serif;
+            font-size: 6.75em;
+            line-height: 2.0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            transform: translateX(-50%);
+            letter-spacing: 0.05em;
+        }
+
+        #crawl-title {
+            /* Scales relative to the fluid base above */
+            font-size: clamp(1.0em, 4vmin, 2.0em);
+            letter-spacing: 0.2em;
+            margin-bottom: 0.6em;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .crawl-content h3 {
+            font-size: 0.9em;
+            margin: 0.2em 0 0.8em;
+            color: #f2a900;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+        }
+
+        .crawl-content p {
+            margin: 0.7em 0;
+            font-size: 0.55em;
+            text-align: justify;
+            text-justify: inter-word;
+        }
+
+        .crawl-content a {
+            color: #7ec8ff;
+            text-decoration: none;
+        }
+
+        .crawl-content a:hover,
+        .crawl-content a:focus {
+            text-decoration: underline;
+        }
+
+        #contact-panel {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: radial-gradient(circle at 50% 20%, rgba(65, 50, 30, 0.35), rgba(4, 5, 6, 0.95));
+            backdrop-filter: blur(6px);
+            z-index: 25;
+            overflow: hidden;
+        }
+
+        .contact-card {
+            position: relative;
+            z-index: 1;
+            max-width: 640px;
+            width: 100%;
+            border-radius: 16px;
+            padding: clamp(32px, 5vw, 48px);
+            background: linear-gradient(140deg, rgba(14, 16, 20, 0.98), rgba(30, 26, 21, 0.9));
+            box-shadow: 0 10px 60px rgba(0, 0, 0, 0.75);
+            color: #f4eed9;
+            font-family: 'Orbitron', 'Share Tech Mono', sans-serif;
+            text-align: left;
+            border: 2px solid rgba(255, 188, 74, 0.25);
+            overflow: hidden;
+        }
+
+        .contact-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(255, 188, 74, 0.12), transparent 65%);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .contact-card h2 {
+            margin: 0 0 20px 0;
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: #fcdc3c;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .contact-eyebrow {
+            margin: 0 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            font-size: 0.9rem;
+            color: #cdb79b;
+        }
+
+        .contact-card p {
+            margin: 0 0 24px 0;
+            line-height: 1.6;
+            font-size: 1rem;
+            color: #e3ddc6;
+            font-family: 'Share Tech Mono', sans-serif;
+            text-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .contact-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-radius: 8px;
+            background: rgba(19, 21, 26, 0.85);
+            border: 1px solid rgba(255, 188, 74, 0.2);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.55);
+        }
+
+        .contact-detail-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: #b07f30;
+        }
+
+        .contact-detail-value {
+            font-size: 1rem;
+            color: #f4eed9;
+            font-family: 'Share Tech Mono', sans-serif;
+        }
+
+        .contact-detail-value a {
+            color: #ffe468;
+            text-decoration: none;
             font-weight: bold;
         }
 
-        #content ul {
-            padding-left: 20px;
+        .contact-detail-value a:hover,
+        .contact-detail-value a:focus {
+            text-decoration: underline;
         }
 
-        #content ul li {
-            list-style-type: disc;
+        .contact-stars {
+            z-index: 0;
         }
 
-        #content p {
-            margin-top: 10px;
+        #esc-popup {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 15px;
+            background: rgba(15, 16, 18, 0.9);
+            color: #f4eed9;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+            font-size: 20px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 188, 74, 0.35);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            backdrop-filter: blur(4px);
+        }
+
+        #esc-popup span {
+            color: #ffe468;
+            font-weight: bold;
+        }
+
+        #controls-popup {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 20px;
+            background: rgba(15, 16, 18, 0.92);
+            color: #f4eed9;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+            font-size: 18px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 188, 74, 0.35);
+            backdrop-filter: blur(4px);
+        }
+
+        #controls-popup > div {
+            line-height: 1.6;
+        }
+
+        #controls-popup strong {
+            color: #ffe468;
+        }
+
+        #controls-popup h3 {
+            margin: 0 0 15px 0;
+            color: #ffe468;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        #controls-popup p {
+            margin: 5px 0;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 0.08em;
+        }
+
+        @media (max-width: 520px) {
+            #welcome-screen {
+                padding: 12px;
+            }
+
+            .welcome-content {
+                width: min(480px, 96vw);
+                padding: 16px;
+            }
+
+            .controls-section {
+                padding: 16px;
+            }
+
+            .control-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .control-key {
+                justify-self: flex-start;
+                margin-left: 0;
+            }
+
+            #takeoff-button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
+    <div id="welcome-screen">
+        <div class="stars"></div>
+        <div class="welcome-content">
+            <div class="controls-section">
+                <h2>Space Controls</h2>
+                <div class="control-item">
+                    <span>Move Forward</span>
+                    <span class="control-key">W</span>
+                </div>
+                <div class="control-item">
+                    <span>Move Backward</span>
+                    <span class="control-key">S</span>
+                </div>
+                <div class="control-item">
+                    <span>Turn Left</span>
+                    <span class="control-key">A</span>
+                </div>
+                <div class="control-item">
+                    <span>Turn Right</span>
+                    <span class="control-key">D</span>
+                </div>
+                <div class="control-item">
+                    <span>Boost Speed</span>
+                    <span class="control-key">SHIFT</span>
+                </div>
+                <div class="control-item">
+                    <span>Land on Planet (when looking at it)</span>
+                    <span class="control-key">E</span>
+                </div>
+            </div>
+            <div class="welcome-footer">
+                <div class="loading-status" id="welcome-loading-status" role="status" aria-live="polite">
+                    <div class="loading-bar-track" aria-hidden="true">
+                        <div class="loading-bar-fill" id="welcome-loading-fill"></div>
+                    </div>
+                    <div class="loading-bar-text" id="welcome-loading-text">
+                        Preparing launch systems...
+                    </div>
+                </div>
+                <button id="takeoff-button" disabled>Preparing Hangar...</button>
+            </div>
+        </div>
+    </div>
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading the universe...</div>
+        </div>
+    </div>
     <script id="vertexShader" type="vertex">
         void main() {
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
@@ -78,22 +646,174 @@
             gl_FragColor = vec4(1.0, 0.1, 0.3, 1.0);
         }
     </script>
-    <script src="./universe.js" type="module"></script>
     <div id="popup">
         Press 'E' to land on <span id="popup-title"></span>.
     </div>
-    <div id="content" class="content">
-        <h2 id="content-title">Popup Title</h2>
-        <div id="content-info">
-            <!-- Dynamic content will be inserted here -->
+    <div id="content">
+        <canvas id="crawl-stars" aria-hidden="true"></canvas>
+        <div id="intro-overlay">
+            <p id="intro-text">A long time ago in a galaxy far, far away...</p>
+        </div>
+        <div class="crawl-container">
+            <div class="crawl-content">
+                <h2 id="crawl-title"></h2>
+                <div id="content-info"></div>
+            </div>
+        </div>
+        <div id="contact-panel" aria-live="polite">
+            <div class="stars contact-stars" aria-hidden="true"></div>
+            <div class="contact-card">
+                <p class="contact-eyebrow">SPENCER SWEENEY</p>
+                <h2 id="contact-title"></h2>
+                <p id="contact-intro"></p>
+                <div id="contact-details" class="contact-details"></div>
+            </div>
         </div>
     </div>
-    <div id="esc-popup" style="position: absolute; top: 10px; left: 10px; padding: 10px; background: rgba(0, 0, 0, 0.7); color: white; border-radius: 5px; display: none; z-index: 1000;">
-        Press ESC to return to space
+    <div id="esc-popup">
+        <div><span>ESC</span> to return to space</div>
+        <div><span>SPACE</span> to pause / resume crawl</div>
+        <div><span>SCROLL</span> or <span>W/S</span> while paused</div>
     </div>
-    <div id="controls-popup" style="position: absolute; top: 10px; left: 10px; padding: 10px; background: rgba(0, 0, 0, 0.7); color: white; border-radius: 5px; display: none; z-index: 1000;">
-        wasd for movement
+    <div id="controls-popup">
+        <h3>Space Controls</h3>
+        <div>
+            <p><strong>W</strong> - Move Forward</p>
+            <p><strong>S</strong> - Move Backward</p>
+            <p><strong>A</strong> - Turn Left</p>
+            <p><strong>D</strong> - Turn Right</p>
+            <p><strong>SHIFT</strong> - Boost Speed</p>
+            <p><strong>E</strong> - Land on Planet (when looking at it)</p>
+        </div>
     </div>
+    <script>
+        const welcomeState = {
+            takeoffButton: null,
+            welcomeScreen: null,
+            loadingFill: null,
+            loadingText: null,
+            hasTakenOff: false,
+        };
+
+        function cacheWelcomeElements() {
+            if (!welcomeState.takeoffButton) {
+                welcomeState.takeoffButton = document.getElementById('takeoff-button');
+                welcomeState.welcomeScreen = document.getElementById('welcome-screen');
+                welcomeState.loadingFill = document.getElementById('welcome-loading-fill');
+                welcomeState.loadingText = document.getElementById('welcome-loading-text');
+            }
+            return welcomeState;
+        }
+
+        function clampPercent(value) {
+            if (typeof value !== 'number' || Number.isNaN(value)) {
+                return 0;
+            }
+            return Math.min(100, Math.max(0, value));
+        }
+
+        function resolvePercent(detail = {}) {
+            if (typeof detail.percent === 'number') {
+                return clampPercent(detail.percent);
+            }
+            if (typeof detail.loaded === 'number' && typeof detail.total === 'number' && detail.total > 0) {
+                return clampPercent((detail.loaded / detail.total) * 100);
+            }
+            return 0;
+        }
+
+        function updateWelcomeProgress(detail = {}) {
+            const { loadingFill, loadingText } = cacheWelcomeElements();
+            const percent = resolvePercent(detail);
+
+            if (loadingFill) {
+                loadingFill.style.width = percent + '%';
+            }
+            if (loadingText) {
+                const progressMessage = detail.message || `Loading assets (${Math.round(percent)}%)`;
+                loadingText.textContent = progressMessage;
+            }
+        }
+
+        function enableTakeoffButton(message) {
+            const { takeoffButton, loadingText, loadingFill } = cacheWelcomeElements();
+
+            if (loadingFill) {
+                loadingFill.style.width = '100%';
+            }
+
+            if (loadingText) {
+                loadingText.textContent = message || 'All systems ready. Awaiting pilot.';
+            }
+
+            if (takeoffButton) {
+                takeoffButton.disabled = false;
+                takeoffButton.textContent = 'Take Off';
+            }
+        }
+
+        document.addEventListener('assets:progress', (event) => {
+            updateWelcomeProgress((event && event.detail) || {});
+        });
+
+        document.addEventListener('assets:error', (event) => {
+            const detail = (event && event.detail) || {};
+            enableTakeoffButton(detail.message || 'Some assets failed to preload. You can still take off.');
+        });
+
+        document.addEventListener('assets:ready', () => {
+            enableTakeoffButton();
+        });
+
+        function createStars() {
+            const starContainers = document.querySelectorAll('.stars');
+            starContainers.forEach((container) => {
+                // Remove any existing stars to avoid duplicates if this reruns.
+                container.innerHTML = '';
+
+                for (let i = 0; i < 200; i++) {
+                    const star = document.createElement('div');
+                    star.style.position = 'absolute';
+                    star.style.width = '2px';
+                    star.style.height = '2px';
+                    star.style.background = 'white';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.opacity = Math.random();
+                    container.appendChild(star);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            cacheWelcomeElements();
+            createStars();
+            
+            const { takeoffButton, welcomeScreen } = welcomeState;
+            if (!takeoffButton || !welcomeScreen) {
+                return;
+            }
+            
+            takeoffButton.disabled = true;
+            takeoffButton.textContent = 'Preparing Hangar...';
+            
+            takeoffButton.addEventListener('click', function() {
+                if (welcomeState.hasTakenOff || takeoffButton.disabled) {
+                    return;
+                }
+                
+                welcomeState.hasTakenOff = true;
+                document.dispatchEvent(new CustomEvent('welcome:takeoff'));
+                welcomeScreen.style.transition = 'opacity 0.5s ease-out';
+                welcomeScreen.style.opacity = '0';
+
+                setTimeout(() => {
+                    welcomeScreen.style.display = 'none';
+                }, 500);
+            });
+        });
+    </script>
+    <script src="./universe.js" type="module"></script>
 </body>
 
 </html>

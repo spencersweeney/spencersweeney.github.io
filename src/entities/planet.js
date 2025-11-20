@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+
+import { getPlanetMaterialConfig } from '../materials/planet-textures';
+import { loadLabelFont } from '../utils/label-font';
 
 export class Planet {
     constructor(params) {
@@ -14,10 +16,10 @@ export class Planet {
             params.orbitPoint.z
         );
 
-        const geo = new THREE.SphereGeometry(params.radius, 30, 30);
-        const mat = new THREE.MeshStandardMaterial({
-            map: params.texture
-        });
+        const geo = new THREE.SphereGeometry(params.radius, 64, 64);
+        const materialProps = this._createMaterialProps(params);
+        const mat = new THREE.MeshPhysicalMaterial(materialProps);
+        this._labelTexture = materialProps.map || null;
         this._planetMesh = new THREE.Mesh(geo, mat);
 
         this._orbitObject.add(this._planetMesh);
@@ -45,12 +47,14 @@ export class Planet {
         return this._planetMesh.uuid;
     }
 
+    get RaycastObject() {
+        return this._planetMesh;
+    }
+
     _addTitle(text) {
         this._title = text;
 
-        const loader = new FontLoader();
-
-        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+        loadLabelFont().then((font) => {
 
             const textGeometry = new TextGeometry(text, {
                 font: font,
@@ -70,19 +74,51 @@ export class Planet {
 
             textGeometry.translate(-xOffset, -yOffset + 1.5 * this._params.radius, -zOffset);
 
-            const textMaterial = new THREE.MeshStandardMaterial({
-                map: this._params.texture
-            });
+            const textMaterial = this._labelTexture
+                ? new THREE.MeshBasicMaterial({ map: this._labelTexture })
+                : new THREE.MeshBasicMaterial({ color: 0xffffff });
 
             this._textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
             this._textMesh.position.copy(this.Position);
             this._textMesh.scale.x = this._calcTextXScale(boundingBox);
             this._textMesh.scale.z = this._calcTextZScale(boundingBox);
-            this._textMesh.castShadow = true;
 
             this._params.scene.add(this._textMesh);
+        }).catch((error) => {
+            console.error('Failed to load planet label font.', error);
         });
+    }
+
+    _createMaterialProps(params) {
+        const baseMaterial = params.textureKey ? getPlanetMaterialConfig(params.textureKey) : null;
+        const materialProps = { ...(baseMaterial || {}), ...(params.material || {}) };
+
+        if (!materialProps.map && params.texture) {
+            materialProps.map = params.texture;
+        }
+
+        if (!materialProps.map) {
+            throw new Error(`Planet '${this._params?.title || 'Unknown'}' is missing a base texture map.`);
+        }
+
+        if (!('roughness' in materialProps)) {
+            materialProps.roughness = 0.8;
+        }
+
+        if (!('metalness' in materialProps)) {
+            materialProps.metalness = 0.2;
+        }
+
+        if (materialProps.alphaMap && typeof materialProps.transparent === 'undefined') {
+            materialProps.transparent = true;
+        }
+
+        if (materialProps.bumpMap && typeof materialProps.bumpScale === 'undefined') {
+            materialProps.bumpScale = 0.03;
+        }
+
+        return materialProps;
     }
 
     _calcTextXScale(boundingBox) {

@@ -1,128 +1,79 @@
 {
+    "sun": {
+        "title": "Spencer Sweeney",
+        "layout": "contact",
+        "contactHeading": "CONTACT",
+        "contactIntro": "Computer Engineering & Computer Science student graduating in May 2026",
+        "contactDetails": [
+            {
+                "label": "Email",
+                "value": "spencersweeney@gmail.com"
+            },
+            {
+                "label": "Phone",
+                "value": "+1 (978) 407-7432"
+            },
+            {
+                "label": "LinkedIn",
+                "value": "https://www.linkedin.com/in/spencer-sweeney/"
+            }
+        ]
+    },
     "planets": [
         {
             "title": "Education",
-            "contentSections": [
-                {
-                    "sectionTitle": "Northeastern University",
-                    "description": "Candidate for Bachelor of Science in Computer Science and Computer Engineering, May 2026",
-                    "items": [
-                        "GPA: 3.96/4.0",
-                        "Relevant Coursework: Object Oriented Design, Algorithms & Data Structures, Database Design, Computer Systems, Networks & Distributed Systems, Differential Equations and Linear Algebra, Calculus III",
-                        "Activities: Vice-President Men’s Club Volleyball - Won 2022 National Championship",
-                        "Awards: Dean’s Scholarship, Dean’s List (AllSemesters)"
-                    ]
-                }
-            ],
-            "sizeFactor": 0.4,
-            "positionFactor": 2,
-            "revolutionSpeedFactor": 0.00005,
-            "rotationSpeedFactor": 0.0005,
-            "texturePath": "planetTexture4"
-        },
-        {
-            "title": "Technical Skills",
-            "contentSections": [
-                {
-                    "sectionTitle": "Programming Languages",
-                    "description": "",
-                    "items": [
-                        "Java",
-                        "Kotlin",
-                        "Python",
-                        "C++",
-                        "SQL(MySQL,SQLite)",
-                        "Javascript(ReactJS,NodeJS)"
-                    ]
-                },
-                {
-                    "sectionTitle": "Technologies & Frameworks",
-                    "description": "",
-                    "items": [
-                        "Git",
-                        "Docker",
-                        "AWS",
-                        "RESTAPIs",
-                        "TCP/IP",
-                        "PyTorch",
-                        "YOLO",
-                        "SAM",
-                        "OpenCV"
-                    ]
-                },
-                {
-                    "sectionTitle": "Systems",
-                    "description": "",
-                    "items": [
-                        "Linux(Ubuntu)",
-                        "macOS",
-                        "Windows"
-                    ]
-                }
-            ],
+            "crawlIntro": "A long time ago in the city of Boston, MA…",
+            "crawlTitle": "EDUCATION",
+            "crawlText": "It is a period of intense scholarly pursuit. At the prestigious NORTHEASTERN UNIVERSITY, a young computer scientist has achieved remarkable academic excellence, maintaining a near-perfect GPA of 3.97 while pursuing a dual degree in Computer Science and Computer Engineering.\n\n\nHonored as a Fung Scholar and recipient of the Dean's Scholarship, this student has mastered the ancient arts of Reinforcement Learning, Software Engineering, and Object Oriented Design, while conquering the formidable challenges of Algorithms, Database Design, and Networks & Distributed Systems.\n\n\nArmed with powerful tools including Java, Python, C++, and the mystical frameworks of React and AWS, and possessing deep knowledge of robotics through ROS and PyTorch, this scholar prepares to graduate in May 2026, ready to bring balance to the force of technology....",
             "sizeFactor": 0.3,
-            "positionFactor": 4,
-            "revolutionSpeedFactor": 0.0002,
-            "rotationSpeedFactor": 0.0007,
-            "texturePath": "planetTexture3"
+            "positionFactor": 2,
+            "revolutionSpeedFactor": 0.00001,
+            "rotationSpeedFactor": 0.00015,
+            "texturePath": "coruscant"
         },
         {
-            "title": "Work Experience",
-            "contentSections": [
-                {
-                    "sectionTitle": "Amazon Robotics",
-                    "description": "Software Development Engineer Co-op, June 2024 - December 2024",
-                    "items": [
-                        "Collaborated with a small team on an in-van process technology system in Amazon FTR’s Innovation Lab",
-                        "Redesigned and refactored the codebase to a microservice-based backend in Java and Kotlin, enhancing code quality, scalability, maintainability, and efficiency",
-                        "Integrated the system with Amazon’s production ecosystem utilizing AWS Lambdas, REST APIs, and Docker to prepare the system and enable edge deployment for on-road deliveries",
-                        "Conducted on-road testing to validate system performance, focusing on software and hardware resiliency, seek-time optimization, and a seamless user experience",
-                        "Integrated advanced object segmentation and tracking models with LLM-based planning to enhance real-time robotic environment modeling"
-                    ]
-                },
-                {
-                    "sectionTitle": "Amazon Robotics",
-                    "description": "Software Development Engineer Co-op, July 2023 - December 2023",
-                    "items": [
-                        "Developed a proof of concept in-van delivery process technology system to improve package delivery efficiency and accuracy with three interns in Amazon FTR’s Innovation Lab",
-                        "Spearheaded the creation of an automation system for package seeking using Python and an internal Amazon Robotics computer vision system",
-                        "Built a frontend with JavaScript and React, incorporating feedback from end users to improve functionality",
-                        "Coordinated with contractors on a comparative time-study; achieving a notable reduction in package delivery time and positive user experience feedback",
-                        "Presented and demonstrated the system to the CEO of Amazon, receiving positive feedback and support for further development"
-                    ]
-                }
-            ],
-            "sizeFactor": 0.7,
-            "positionFactor": 7,
-            "revolutionSpeedFactor": 0.00009,
-            "rotationSpeedFactor": 0.00009,
-            "texturePath": "planetTexture2"
-        },
-        {
-            "title": "Projects",
-            "contentSections": [
-                {
-                    "sectionTitle": "Transport Layer Protocol",
-                    "description": "Developer, March 2023 - April 2023",
-                    "items": [
-                        "Designed and implemented a Python-based transport protocol leveraging TCP principles, ensuring reliable, ordered data delivery without duplicates or errors",
-                        "Conducted rigorous testing on a network emulator to validate performance under variable network conditions"
-                    ]
-                },
-                {
-                    "sectionTitle": "Image Manipulation and Enhancement Editor",
-                    "description": "Developer, October 2022 - December 2022",
-                    "items": [
-                        "Created an image editing application in Java using the Model-View-Controller (MVC) architecture, enabling complex filter and transformations",
-                        "Designed and executed a comprehensive test suite using JUnit, including both unit and integration tests"
-                    ]
-                }
-            ],
-            "sizeFactor": 0.5,
+            "title": "UCL Research",
+            "crawlIntro": "Across the ocean, in a distant scientific sector…",
+            "crawlTitle": "UCL Robot Perception & Learning Lab",
+            "crawlText": "At the legendary UNIVERSITY COLLEGE LONDON, within the secretive Robot Perception and Learning Lab, a visiting researcher embarks on a dangerous mission that will push the boundaries of autonomous robotics.\n\n\nFrom September through December 2025, this brave engineer commands quadruped robots known as Unitree Go2-W through treacherous unstructured terrain, developing an exploration planner using advanced LiDAR technology to efficiently navigate and map the mysterious vineyards of the countryside.\n\n\nBy combining the lab's existing knowledge of traversability, local planning, and global planning into a unified system, the researcher collects precious LiDAR, RGB-D, IMU, and Robot Joint data that may hold the key to autonomous field data collection for generations to come....",
+            "sizeFactor": 0.4,
             "positionFactor": 10,
-            "revolutionSpeedFactor": 0.0001,
-            "rotationSpeedFactor": 0.00007,
-            "texturePath": "planetTexture5"
+            "revolutionSpeedFactor": 0.000018,
+            "rotationSpeedFactor": 0.00021,
+            "texturePath": "narShaddaa"
+        },
+        {
+            "title": "Amazon Robotics",
+            "crawlIntro": "Within the great empire of Amazon, innovation stirs once more…",
+            "crawlTitle": "AMAZON ROBOTICS",
+            "crawlText": "In the summer of 2023, a young engineer joins the elite forces at AMAZON'S FULFILLMENT TECHNOLOGIES & ROBOTICS INNOVATION LAB as a Software Development Engineer Co-op, beginning an epic journey that will test courage, skill, and determination.\n\n\nInitially part of a three-intern strike team building a proof-of-concept in-van process technology system, destiny calls when the other interns depart midway through the mission. Taking command of the full project, the engineer builds backend interfaces in Python for package seeking and retrieval, contributes to a React frontend forged from Delivery Associate feedback, and runs in-lab tests with human-factors specialists to measure and optimize seek time.\n\n\nThe young engineer's triumph is complete when demonstrating the creation to over 20 Vice Presidents, an SVP, and the supreme leader—the CEO of Amazon himself—proving that even a single determined engineer can accomplish what seems impossible....\n\n\n   Returning to the AMAZON FULFILLMENT TECHNOLOGIES & ROBOTICS INNOVATION LAB, a seasoned Software Development Engineer continues the noble quest, advancing the in-van process technology system toward its ultimate destiny.\n\nFrom June through December 2024, the engineer transforms a proof-of-concept into a scalable microservice architecture using Kotlin, Java, and Amazon Robotics middleware, while Dockerizing services for deployment across multiple edge devices.\n\nAn on-road pilot validates the system's resilience in live delivery conditions, while a parallel mission integrates object segmentation and tracking with LLM-based planning, enhancing robotic environment modeling and real-time interaction....",
+            "sizeFactor": 0.8,
+            "positionFactor": 7,
+            "revolutionSpeedFactor": 0.000006,
+            "rotationSpeedFactor": 0.000027,
+            "texturePath": "csilla"
+        },
+        {
+            "title": "VolleyVision",
+            "crawlIntro": "On distant courts, a new vision of the game was born…",
+            "crawlTitle": "VOLLEYVISION",
+            "crawlText": "Between December 2024 and February 2025, a new hope emerges in the realm of sports technology as an innovative system called VOLLEYVISION rises to revolutionize how athletes and coaches analyze the ancient game of volleyball.\n\n\nWielding the power of object detection and parabolic tracking to segment rallies and classify ball motion with unprecedented precision, the system brings order to chaos, automatically capturing 99% of plays across the court with machine learning algorithms that never tire or lose focus.\n\n\nBy reducing usable video length by 49%, VOLLEYVISION allows coaches and athletes to review film at lightspeed, forever changing how teams prepare for battle on the court and giving them the competitive edge they need to achieve victory....\n\n\nhttps://github.com/spencersweeney/volleyvision",
+            "sizeFactor": 0.5,
+            "positionFactor": 5,
+            "revolutionSpeedFactor": 0.00004,
+            "rotationSpeedFactor": 0.000021,
+            "texturePath": "desert"
+        },
+        {
+            "title": "Activities",
+            "crawlIntro": "Far from the lab, adventure still calls…",
+            "crawlTitle": "ACTIVITIES",
+            "crawlText": "But our hero's journey extends far beyond the digital realm into the physical world of athletic competition and community leadership, proving that true mastery requires balance between mind and body.\n\n\nAs a semi-professional athlete with BOSTON BOUNCE in the Volleyball League of America and Vice President of NORTHEASTERN MEN'S CLUB VOLLEYBALL—champions of the 2022 National Tournament—the engineer demonstrates that teamwork and competitive excellence translate across all domains. Meanwhile, in the IDEA VENTURE ACCELERATOR, serving as Ready Stage Coordinator and Director of Partnerships, leadership skills are honed while guiding aspiring entrepreneurs on their own quests.\n\n\nWhen not coding or competing, our hero explores the wild frontiers of National Parks, discovers new sonic galaxies through Indie Rock music, strategizes over Board Games, and absorbs wisdom from Podcast transmissions, proving that the most interesting engineers are those who seek adventure in all corners of the universe....",
+            "sizeFactor": 0.7,
+            "positionFactor": 12,
+            "revolutionSpeedFactor": 0.00003,
+            "rotationSpeedFactor": 0.000021,
+            "texturePath": "korriban"
         }
     ]
 }
