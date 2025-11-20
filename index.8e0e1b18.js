@@ -597,121 +597,291 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"brDbb":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-var _three = require("three");
 var _worldAppManager = require("./mangers/world-app-manager");
-var _planetTexture2Jpg = require("./assets/img/planetTexture2.jpg");
-var _planetTexture2JpgDefault = parcelHelpers.interopDefault(_planetTexture2Jpg);
-var _planetTexture3Png = require("./assets/img/planetTexture3.png");
-var _planetTexture3PngDefault = parcelHelpers.interopDefault(_planetTexture3Png);
-var _planetTexture4Jpg = require("./assets/img/planetTexture4.jpg");
-var _planetTexture4JpgDefault = parcelHelpers.interopDefault(_planetTexture4Jpg);
-var _planetTexture5Jpg = require("./assets/img/planetTexture5.jpg");
-var _planetTexture5JpgDefault = parcelHelpers.interopDefault(_planetTexture5Jpg);
+var _planetTextures = require("./materials/planet-textures");
+var _rightPng = require("./assets/img/skybox/right.png");
+var _rightPngDefault = parcelHelpers.interopDefault(_rightPng);
+var _leftPng = require("./assets/img/skybox/left.png");
+var _leftPngDefault = parcelHelpers.interopDefault(_leftPng);
+var _topPng = require("./assets/img/skybox/top.png");
+var _topPngDefault = parcelHelpers.interopDefault(_topPng);
+var _bottomPng = require("./assets/img/skybox/bottom.png");
+var _bottomPngDefault = parcelHelpers.interopDefault(_bottomPng);
+var _frontPng = require("./assets/img/skybox/front.png");
+var _frontPngDefault = parcelHelpers.interopDefault(_frontPng);
+var _backPng = require("./assets/img/skybox/back.png");
+var _backPngDefault = parcelHelpers.interopDefault(_backPng);
+var _sunJpg = require("./assets/img/sun.jpg");
+var _sunJpgDefault = parcelHelpers.interopDefault(_sunJpg);
+var _spaceshipGlb = require("./assets/models/spaceship.glb");
+var _spaceshipGlbDefault = parcelHelpers.interopDefault(_spaceshipGlb);
+var _firePng = require("./assets/img/fire.png");
+var _firePngDefault = parcelHelpers.interopDefault(_firePng);
 var _contentJson = require("./content.json");
 var _contentJsonDefault = parcelHelpers.interopDefault(_contentJson);
 const loadingScreen = document.getElementById('loading-screen');
-const loadingText = loadingScreen.querySelector('.loading-text');
+const loadingText = loadingScreen ? loadingScreen.querySelector('.loading-text') : null;
+const MIN_LOADING_DURATION = 600;
+let loadingStartTime = 0;
 const contentMap = new Map();
 let planetParams = null;
+if (typeof window !== 'undefined') window.__universeReady = false;
+const IMAGE_EXTENSIONS = new Set([
+    'png',
+    'jpg',
+    'jpeg',
+    'gif',
+    'webp'
+]);
+const coreAssetManifest = buildCoreAssetManifest();
+let preloadSummary = {
+    total: coreAssetManifest.length,
+    failed: 0
+};
+let assetPreloadPromise = null;
+let sceneInitialized = false;
+function getTimestamp() {
+    if (typeof performance !== 'undefined' && typeof performance.now === 'function') return performance.now();
+    return Date.now();
+}
 function showLoadingScreen(message = 'Loading the universe...') {
+    if (!loadingScreen || !loadingText) return;
+    loadingStartTime = getTimestamp();
     loadingText.textContent = message;
     loadingScreen.style.display = 'flex';
     loadingScreen.classList.remove('fade-out');
 }
 function hideLoadingScreen() {
-    loadingScreen.classList.add('fade-out');
-    setTimeout(()=>{
-        loadingScreen.style.display = 'none';
-    }, 500);
+    if (!loadingScreen) return;
+    const elapsed = getTimestamp() - loadingStartTime;
+    const remaining = Math.max(0, MIN_LOADING_DURATION - elapsed);
+    const finalizeHide = ()=>{
+        loadingScreen.classList.add('fade-out');
+        setTimeout(()=>{
+            loadingScreen.style.display = 'none';
+        }, 500);
+    };
+    if (remaining > 0) setTimeout(finalizeHide, remaining);
+    else finalizeHide();
 }
-function loadTextureSpace(texturePath) {
-    return new Promise((resolve, reject)=>{
-        const textureLoader = new _three.TextureLoader();
-        textureLoader.load(texturePath, (texture)=>resolve(texture), undefined, (error)=>reject(error));
+function getActivePlanetTextureAssets() {
+    if (!Array.isArray((0, _contentJsonDefault.default)?.planets)) return [];
+    const textureKeys = Array.from(new Set((0, _contentJsonDefault.default).planets.map((planet)=>planet.texturePath).filter(Boolean)));
+    return (0, _planetTextures.getPlanetTexturePaths)(textureKeys);
+}
+function buildCoreAssetManifest() {
+    const manifest = new Set();
+    [
+        (0, _rightPngDefault.default),
+        (0, _leftPngDefault.default),
+        (0, _topPngDefault.default),
+        (0, _bottomPngDefault.default),
+        (0, _frontPngDefault.default),
+        (0, _backPngDefault.default),
+        (0, _sunJpgDefault.default),
+        (0, _spaceshipGlbDefault.default),
+        (0, _firePngDefault.default)
+    ].forEach((asset)=>{
+        if (asset) manifest.add(asset);
     });
-}
-function loadTextureLanded(texturePath) {
-    return new Promise((resolve, reject)=>{
-        const textureLoader = new _three.TextureLoader();
-        textureLoader.load(texturePath, (texture)=>{
-            texture.minFilter = _three.LinearFilter;
-            texture.magFilter = _three.LinearFilter;
-            texture.anisotropy = 16;
-            texture.wrapS = texture.wrapT = _three.RepeatWrapping;
-            texture.repeat.set(10, 10);
-            resolve(texture);
-        }, undefined, (error)=>reject(error));
+    getActivePlanetTextureAssets().forEach((asset)=>{
+        if (asset) manifest.add(asset);
     });
+    return Array.from(manifest);
 }
-// Initialize textures
-async function initializeTextures() {
-    try {
-        const [spaceTexture2, spaceTexture3, spaceTexture4, spaceTexture5] = await Promise.all([
-            loadTextureSpace((0, _planetTexture2JpgDefault.default)),
-            loadTextureSpace((0, _planetTexture3PngDefault.default)),
-            loadTextureSpace((0, _planetTexture4JpgDefault.default)),
-            loadTextureSpace((0, _planetTexture5JpgDefault.default))
-        ]);
-        const [landedTexture2, landedTexture3, landedTexture4, landedTexture5] = await Promise.all([
-            loadTextureLanded((0, _planetTexture2JpgDefault.default)),
-            loadTextureLanded((0, _planetTexture3PngDefault.default)),
-            loadTextureLanded((0, _planetTexture4JpgDefault.default)),
-            loadTextureLanded((0, _planetTexture5JpgDefault.default))
-        ]);
-        return {
-            space: {
-                'planetTexture2': spaceTexture2,
-                'planetTexture3': spaceTexture3,
-                'planetTexture4': spaceTexture4,
-                'planetTexture5': spaceTexture5
-            },
-            landed: {
-                'planetTexture2': landedTexture2,
-                'planetTexture3': landedTexture3,
-                'planetTexture4': landedTexture4,
-                'planetTexture5': landedTexture5
-            }
-        };
-    } catch (error) {
-        console.error('Error loading textures:', error);
-        throw error;
+function startCoreAssetPreload() {
+    if (assetPreloadPromise) return assetPreloadPromise;
+    if (typeof window === 'undefined') {
+        assetPreloadPromise = Promise.resolve(preloadSummary);
+        return assetPreloadPromise;
     }
+    assetPreloadPromise = preloadCoreAssets(coreAssetManifest).then((summary)=>{
+        preloadSummary = summary;
+        return summary;
+    }).catch((error)=>{
+        console.error('Error preloading core assets:', error);
+        const failedSummary = {
+            total: coreAssetManifest.length,
+            failed: coreAssetManifest.length
+        };
+        preloadSummary = failedSummary;
+        document.dispatchEvent(new CustomEvent('assets:error', {
+            detail: {
+                message: 'Failed to preload assets. Launch will still attempt to continue.'
+            }
+        }));
+        return failedSummary;
+    });
+    return assetPreloadPromise;
+}
+function preloadCoreAssets(manifest) {
+    if (!manifest.length) {
+        dispatchAssetProgress(1, 1, 'Assets ready.');
+        return Promise.resolve({
+            total: 0,
+            failed: 0
+        });
+    }
+    let completed = 0;
+    dispatchAssetProgress(0, manifest.length, 'Initializing hangar systems...');
+    const loaders = manifest.map((url)=>{
+        return preloadSingleAsset(url).then(()=>({
+                url,
+                failed: false
+            })).catch((error)=>{
+            console.warn(`Failed to preload asset: ${url}`, error);
+            return {
+                url,
+                failed: true
+            };
+        }).finally(()=>{
+            completed += 1;
+            dispatchAssetProgress(completed, manifest.length, `Loading assets (${completed}/${manifest.length})`, url);
+        });
+    });
+    return Promise.all(loaders).then((results)=>{
+        const failedAssets = results.filter((result)=>result.failed).map((result)=>result.url);
+        if (failedAssets.length) document.dispatchEvent(new CustomEvent('assets:error', {
+            detail: {
+                failed: failedAssets,
+                message: 'Some assets failed to preload. Launch is still available.'
+            }
+        }));
+        return {
+            total: manifest.length,
+            failed: failedAssets.length
+        };
+    });
+}
+function dispatchAssetProgress(loaded, total, message, currentUrl) {
+    if (typeof document === 'undefined') return;
+    const percent = total === 0 ? 100 : Math.round(loaded / total * 100);
+    document.dispatchEvent(new CustomEvent('assets:progress', {
+        detail: {
+            loaded,
+            total,
+            percent,
+            message,
+            currentUrl
+        }
+    }));
+}
+function preloadSingleAsset(url) {
+    if (!url) return Promise.resolve();
+    const extension = getAssetExtension(url);
+    if (IMAGE_EXTENSIONS.has(extension)) return new Promise((resolve, reject)=>{
+        const image = new Image();
+        image.decoding = 'async';
+        image.loading = 'eager';
+        image.onload = ()=>resolve();
+        image.onerror = ()=>reject(new Error(`Image preload failed: ${url}`));
+        image.src = url;
+    });
+    return fetch(url, {
+        cache: 'force-cache'
+    }).then((response)=>{
+        if (!response.ok) throw new Error(`Failed to preload ${url}: ${response.status}`);
+        return response.arrayBuffer().then(()=>undefined);
+    });
+}
+function getAssetExtension(url = '') {
+    const normalized = url.split('?')[0];
+    const parts = normalized.split('.');
+    return parts.length > 1 ? parts.pop().toLowerCase() : '';
+}
+function emitAssetsReady(planetsLoaded) {
+    document.dispatchEvent(new CustomEvent('assets:ready', {
+        detail: {
+            ...preloadSummary,
+            planetsLoaded
+        }
+    }));
 }
 const appManager = new (0, _worldAppManager.WorldAppManager)();
 appManager.AddApp('space', (0, _worldAppManager.SpaceApp));
 appManager.AddApp('planet', (0, _worldAppManager.PlanetApp));
+if (typeof window !== 'undefined') startCoreAssetPreload();
 // Initialize the SpaceApp on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', async ()=>{
+document.addEventListener('DOMContentLoaded', ()=>{
     try {
-        showLoadingScreen('Initializing space environment...');
-        const textures = await initializeTextures();
         const planets = [];
-        (0, _contentJsonDefault.default).planets.forEach((planet)=>{
-            const { title, contentSections, texturePath, sizeFactor, positionFactor, revolutionSpeedFactor, rotationSpeedFactor } = planet;
+        if ((0, _contentJsonDefault.default).sun) {
+            const { title, crawlIntro, crawlText, crawlTitle, layout, contactHeading, contactIntro, contactDetails } = (0, _contentJsonDefault.default).sun;
             contentMap.set(title, {
                 title,
-                contentSections,
-                texture: textures.landed[texturePath]
+                crawlIntro,
+                crawlText,
+                crawlTitle,
+                layout,
+                contactHeading,
+                contactIntro,
+                contactDetails
             });
+        }
+        (0, _contentJsonDefault.default).planets.forEach((planet)=>{
+            const { title, crawlIntro, crawlText, crawlTitle, texturePath, sizeFactor, positionFactor, revolutionSpeedFactor, rotationSpeedFactor } = planet;
+            contentMap.set(title, {
+                title,
+                crawlIntro,
+                crawlText,
+                crawlTitle,
+                layout: planet.layout || 'crawl'
+            });
+            if (!(0, _planetTextures.hasPlanetMaterialConfig)(texturePath)) {
+                console.warn(`No material definition found for planet '${title}' with texture key '${texturePath}'.`);
+                return;
+            }
             planets.push({
                 sizeFactor,
                 positionFactor,
                 revolutionSpeedFactor,
                 rotationSpeedFactor,
-                texture: textures.space[texturePath],
+                textureKey: texturePath,
                 title
             });
         });
         planetParams = {
             planets
         };
-        appManager.SwitchApp('space', planetParams);
-        hideLoadingScreen();
+        startCoreAssetPreload().finally(()=>{
+            initializeSpaceScene(planets.length);
+        });
     } catch (error) {
         console.error('Error during initialization:', error);
-        loadingText.textContent = 'Error loading the universe. Please refresh the page.';
+        if (loadingText) loadingText.textContent = 'Error loading the universe. Please refresh the page.';
+        document.dispatchEvent(new CustomEvent('assets:error', {
+            detail: {
+                message: 'Unable to prepare the universe. Please refresh the page.'
+            }
+        }));
+        if (typeof window !== 'undefined') window.__universeReady = false;
     }
 });
+function initializeSpaceScene(planetsLoaded) {
+    if (sceneInitialized || !planetParams) return;
+    try {
+        sceneInitialized = true;
+        appManager.SwitchApp('space', planetParams);
+        hideLoadingScreen();
+        if (typeof window !== 'undefined') window.__universeReady = true;
+        document.dispatchEvent(new CustomEvent('universe:ready', {
+            detail: {
+                planetsLoaded
+            }
+        }));
+        emitAssetsReady(planetsLoaded);
+    } catch (error) {
+        sceneInitialized = false;
+        console.error('Error during space scene initialization:', error);
+        if (loadingText) loadingText.textContent = 'Error loading the universe. Please refresh the page.';
+        document.dispatchEvent(new CustomEvent('assets:error', {
+            detail: {
+                message: 'Unable to initialize the space scene. Please refresh the page.'
+            }
+        }));
+        if (typeof window !== 'undefined') window.__universeReady = false;
+    }
+}
 // Example: Switching between apps dynamically
 document.addEventListener('keydown', async (event)=>{
     if (appManager.CurrentState.Name == 'space') {
@@ -725,7 +895,7 @@ document.addEventListener('keydown', async (event)=>{
                 hideLoadingScreen();
             } catch (error) {
                 console.error('Error landing on planet:', error);
-                loadingText.textContent = 'Error landing on planet. Please try again.';
+                if (loadingText) loadingText.textContent = 'Error landing on planet. Please try again.';
             }
         }
     }
@@ -738,7 +908,401 @@ document.addEventListener('keydown', async (event)=>{
     }
 });
 
-},{"three":"ktPTu","./mangers/world-app-manager":"h7r4N","./assets/img/planetTexture2.jpg":"1jMlp","./assets/img/planetTexture3.png":"iXUTU","./assets/img/planetTexture4.jpg":"e34M6","./assets/img/planetTexture5.jpg":"fHOPz","./content.json":"2lZ1U","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ktPTu":[function(require,module,exports,__globalThis) {
+},{"./mangers/world-app-manager":"h7r4N","./materials/planet-textures":"dNg2F","./content.json":"2lZ1U","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./assets/img/skybox/right.png":"6po0W","./assets/img/skybox/left.png":"7HFqk","./assets/img/skybox/top.png":"1XI2c","./assets/img/skybox/bottom.png":"fkp6S","./assets/img/skybox/front.png":"aB4Nd","./assets/img/skybox/back.png":"4iyDW","./assets/img/sun.jpg":"3NC5I","./assets/models/spaceship.glb":"i3SPk","./assets/img/fire.png":"5ZYwK"}],"h7r4N":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "WorldAppManager", ()=>WorldAppManager);
+parcelHelpers.export(exports, "SpaceApp", ()=>SpaceApp);
+parcelHelpers.export(exports, "PlanetApp", ()=>PlanetApp);
+var _fsm = require("./fsm");
+var _space = require("../apps/space");
+var _landedPlanet = require("../apps/landed-planet");
+class WorldAppManager extends (0, _fsm.FiniteStateMachine) {
+    constructor(){
+        super();
+    }
+    get CurrentState() {
+        return this._currentState;
+    }
+    AddApp(name, appClass) {
+        this._AddState(name, appClass);
+    }
+    SwitchApp(name, params) {
+        const prevState = this._currentState;
+        if (prevState) {
+            if (prevState.Name == name) return;
+            prevState.Exit();
+        }
+        const state = new this._states[name](this, params);
+        this._currentState = state;
+        state.Enter(prevState);
+    }
+}
+class App extends (0, _fsm.State) {
+    constructor(manager, params){
+        super(manager); // Pass the AppManager reference to the parent
+        this._params = params;
+    }
+    Enter(previousApp) {
+        console.log(`Entering app: ${this.constructor.name}`);
+    }
+    Exit() {
+        console.log(`Exiting app: ${this.constructor.name}`);
+    }
+    Update(timeElapsed, input) {}
+}
+class SpaceApp extends App {
+    constructor(manager, params){
+        super(manager, params);
+        this._spaceInstance = null;
+    }
+    get Name() {
+        return 'space';
+    }
+    Enter(previousApp) {
+        super.Enter(previousApp);
+        console.log('Entering SpaceApp');
+        this._spaceInstance = new (0, _space.Space)(this._params);
+    }
+    Exit() {
+        super.Exit();
+        console.log('Exiting SpaceApp');
+        // Clean up the Space instance
+        if (this._spaceInstance) {
+            this._spaceInstance.Cleanup();
+            this._spaceInstance = null;
+        }
+    }
+    Update(timeElapsed) {
+        if (this._spaceInstance) this._spaceInstance.Update(timeElapsed);
+    }
+    get LookedAtObject() {
+        return this._spaceInstance.LookedAtObject;
+    }
+}
+class PlanetApp extends App {
+    constructor(manager, params){
+        super(manager, params);
+        this._planetInstance = null;
+    }
+    get Name() {
+        return 'planet';
+    }
+    Enter(previousApp) {
+        super.Enter(previousApp);
+        console.log('Entering PlanetApp');
+        this._planetInstance = new (0, _landedPlanet.PlanetWorld)(this._params);
+    }
+    Exit() {
+        super.Exit();
+        console.log('Exiting SpaceApp');
+        // Clean up the Space instance
+        if (this._planetInstance) {
+            this._planetInstance.Cleanup();
+            this._planetInstance = null;
+        }
+    }
+    Update(timeElapsed) {
+        if (this._planetInstance) this._planetInstance.Update(timeElapsed);
+    }
+}
+
+},{"./fsm":"kLAq6","../apps/space":"8sLWo","../apps/landed-planet":"iExpn","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kLAq6":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "FiniteStateMachine", ()=>FiniteStateMachine);
+parcelHelpers.export(exports, "State", ()=>State);
+class FiniteStateMachine {
+    constructor(){
+        this._states = {};
+        this._currentState = null;
+    }
+    _AddState(name, type) {
+        this._states[name] = type;
+    }
+    SetState(name) {
+        const prevState = this._currentState;
+        if (prevState) {
+            if (prevState.Name == name) return;
+            prevState.Exit();
+        }
+        const state = new this._states[name](this);
+        this._currentState = state;
+        state.Enter(prevState);
+    }
+    Update(timeElapsed, input) {
+        if (this._currentState) this._currentState.Update(timeElapsed, input);
+    }
+}
+class State {
+    constructor(parent){
+        this._parent = parent;
+    }
+    Enter() {}
+    Exit() {}
+    Update() {}
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports,__globalThis) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, '__esModule', {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === 'default' || key === '__esModule' || Object.prototype.hasOwnProperty.call(dest, key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"8sLWo":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Space", ()=>Space);
+var _three = require("three");
+var _effectComposerJs = require("three/examples/jsm/postprocessing/EffectComposer.js");
+var _renderPassJs = require("three/examples/jsm/postprocessing/RenderPass.js");
+var _unrealBloomPassJs = require("three/examples/jsm/postprocessing/UnrealBloomPass.js");
+var _spaceshipJs = require("../entities/spaceship.js");
+var _cameraJs = require("../entities/camera.js");
+var _planetJs = require("../entities/planet.js");
+var _sunJs = require("../entities/sun.js");
+var _rightPng = require("../assets/img/skybox/right.png");
+var _rightPngDefault = parcelHelpers.interopDefault(_rightPng);
+var _leftPng = require("../assets/img/skybox/left.png");
+var _leftPngDefault = parcelHelpers.interopDefault(_leftPng);
+var _topPng = require("../assets/img/skybox/top.png");
+var _topPngDefault = parcelHelpers.interopDefault(_topPng);
+var _bottomPng = require("../assets/img/skybox/bottom.png");
+var _bottomPngDefault = parcelHelpers.interopDefault(_bottomPng);
+var _frontPng = require("../assets/img/skybox/front.png");
+var _frontPngDefault = parcelHelpers.interopDefault(_frontPng);
+var _backPng = require("../assets/img/skybox/back.png");
+var _backPngDefault = parcelHelpers.interopDefault(_backPng);
+var _sunJpg = require("../assets/img/sun.jpg");
+var _sunJpgDefault = parcelHelpers.interopDefault(_sunJpg);
+const SUN_RADIUS = 50;
+const FOV = 60;
+const ASPECT = 1920 / 1080;
+const NEAR = 1.0;
+const FAR = 100000.0;
+class Space {
+    constructor(params){
+        this._params = params;
+        console.log(params);
+        this._celestialObjectMap = new Map();
+        this._raycastTargets = [];
+        this._raycaster = new _three.Raycaster();
+        this._pointer = new _three.Vector2(0, 0);
+        this._Initialize();
+    }
+    _Initialize() {
+        this._threejs = new _three.WebGLRenderer({
+            antialias: true
+        });
+        // Modern three: outputColorSpace; fall back to legacy outputEncoding
+        if ('outputColorSpace' in this._threejs) this._threejs.outputColorSpace = _three.SRGBColorSpace;
+        else this._threejs.outputEncoding = _three.sRGBEncoding;
+        // Keep tone mapping neutral while debugging color; you can switch to ACES later
+        this._threejs.toneMapping = _three.NoToneMapping;
+        this._threejs.toneMappingExposure = 1.0;
+        this._threejs.shadowMap.enabled = false;
+        const devicePixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+        this._threejs.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        this._threejs.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(this._threejs.domElement);
+        window.addEventListener('resize', ()=>{
+            this._OnWindowResize();
+        }, false);
+        this._camera = new _three.PerspectiveCamera(FOV, ASPECT, NEAR, FAR);
+        this._camera.position.set(0, 0, 0);
+        this._scene = new _three.Scene();
+        const ambientLight = new _three.AmbientLight(0x404040, 0.3);
+        this._scene.add(ambientLight);
+        const cubeTextureLoader = new _three.CubeTextureLoader();
+        this._scene.background = cubeTextureLoader.load([
+            (0, _rightPngDefault.default),
+            (0, _leftPngDefault.default),
+            (0, _topPngDefault.default),
+            (0, _bottomPngDefault.default),
+            (0, _frontPngDefault.default),
+            (0, _backPngDefault.default)
+        ]);
+        // Starfield PNGs are color data → sRGB
+        if (this._scene.background && 'colorSpace' in this._scene.background) this._scene.background.colorSpace = _three.SRGBColorSpace;
+        const controlspPopup = document.getElementById('controls-popup');
+        if (controlspPopup) controlspPopup.style.display = 'block';
+        this._LoadSun();
+        this._LoadPlanets();
+        this._LoadAnimatedModel();
+        this._LoadBloom();
+        this._stopRendering = false;
+        this._RAF();
+    }
+    _LoadSun() {
+        const params = {
+            scene: this._scene,
+            revolutionSpeed: 0.001,
+            radius: SUN_RADIUS,
+            texture: (0, _sunJpgDefault.default),
+            position: new _three.Vector3()
+        };
+        this._sun = new (0, _sunJs.Sun)(params);
+        this._sun.addTitle('Spencer Sweeney');
+        this._registerCelestialObject(this._sun);
+    }
+    _LoadPlanets() {
+        this._planets = [];
+        this._params.planets.forEach((planet)=>{
+            const planetInstance = this._LoadPlanet(new _three.Vector3(), planet.revolutionSpeedFactor * SUN_RADIUS, planet.rotationSpeedFactor * SUN_RADIUS, planet.sizeFactor * SUN_RADIUS, planet.textureKey, new _three.Vector3(planet.positionFactor * SUN_RADIUS, 0, 0), planet.title);
+            this._planets.push(planetInstance);
+            this._registerCelestialObject(planetInstance);
+        });
+    }
+    _LoadPlanet(orbitPoint, revolutionSpeed, rotationSpeed, radius, textureKey, position, title) {
+        const params = {
+            scene: this._scene,
+            orbitPoint: orbitPoint,
+            revolutionSpeed: revolutionSpeed,
+            rotationSpeed: rotationSpeed,
+            radius: radius,
+            textureKey: textureKey,
+            position: position,
+            title: title
+        };
+        return new (0, _planetJs.Planet)(params);
+    }
+    _registerCelestialObject(object) {
+        if (!object || !object.UUID) return;
+        this._celestialObjectMap.set(object.UUID, object);
+        if (object.RaycastObject) this._raycastTargets.push(object.RaycastObject);
+    }
+    _LoadAnimatedModel() {
+        const params = {
+            camera: this._camera,
+            scene: this._scene
+        };
+        this._controls = new (0, _spaceshipJs.SpaceshipController)(params);
+        this._thirdPersonCamera = new (0, _cameraJs.ThirdPersonCamera)({
+            camera: this._camera,
+            target: this._controls
+        });
+    }
+    _LoadBloom() {
+        // Post-Processing Setup
+        this._composer = new (0, _effectComposerJs.EffectComposer)(this._threejs);
+        this._composer.addPass(new (0, _renderPassJs.RenderPass)(this._scene, this._camera));
+        // Unreal Bloom Pass
+        const bloomPass = new (0, _unrealBloomPassJs.UnrealBloomPass)(new _three.Vector2(window.innerWidth, window.innerHeight), 0.75, 0.4, 0.85 // Threshold
+        );
+        this._composer.addPass(bloomPass);
+    }
+    _OnWindowResize() {
+        this._camera.aspect = window.innerWidth / window.innerHeight;
+        this._camera.updateProjectionMatrix();
+        const devicePixelRatio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+        this._threejs.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        this._threejs.setSize(window.innerWidth, window.innerHeight);
+    }
+    _RAF() {
+        if (this._stopRendering) return;
+        requestAnimationFrame((t)=>{
+            if (this._stopRendering) return;
+            if (this._previousRAF === null) this._previousRAF = t;
+            this._RAF();
+            // this._threejs.render(this._scene, this._camera); 
+            this._Step(t - this._previousRAF);
+            this._previousRAF = t;
+        });
+    }
+    _Step(timeElapsed) {
+        if (!this._threejs || !this._scene || !this._camera) return;
+        const timeElapsedS = timeElapsed * 0.001;
+        if (this._mixers) this._mixers.map((m)=>m.update(timeElapsedS));
+        if (this._controls) this._controls.Update(timeElapsedS);
+        if (this._sun) {
+            this._sun.Update(timeElapsedS);
+            if (this._controls) this._sun.UpdateText(this._controls.Position);
+        }
+        if (this._planets) this._planets.forEach((planet)=>{
+            if (planet) {
+                planet.Update(timeElapsed);
+                if (this._controls) planet.UpdateText(this._controls.Position);
+            }
+        });
+        this._lookedAtObject = this._findObjectLookedAt();
+        const popup = document.getElementById('popup');
+        const popupTitle = document.getElementById('popup-title');
+        if (popup && popupTitle) {
+            if (this._lookedAtObject) {
+                popupTitle.textContent = this._lookedAtObject.Title;
+                popup.style.display = 'block';
+            } else popup.style.display = 'none';
+        }
+        this._composer.render();
+        this._thirdPersonCamera.Update(timeElapsedS);
+    }
+    _findObjectLookedAt() {
+        if (!this._raycastTargets.length) return null;
+        this._raycaster.setFromCamera(this._pointer, this._camera);
+        // Check for intersections with objects in the scene
+        const intersects = this._raycaster.intersectObjects(this._raycastTargets, true);
+        if (intersects.length > 0) {
+            // The first object in the intersects array is the closest one
+            const lookedAtObject = intersects[0].object;
+            const landableObject = this._celestialObjectMap.get(lookedAtObject.uuid);
+            if (landableObject) return landableObject;
+            return null;
+        } else return null;
+    }
+    get LookedAtObject() {
+        return this._lookedAtObject;
+    }
+    Update(timeElapsed) {
+        this._Step(timeElapsed);
+    }
+    Cleanup() {
+        if (this._threejs) this._threejs.dispose();
+        if (this._scene) while(this._scene.children.length > 0)this._scene.remove(this._scene.children[0]);
+        window.removeEventListener('resize', this._OnWindowResize);
+        const canvas = this._threejs.domElement;
+        if (canvas && canvas.parentElement) canvas.parentElement.removeChild(canvas);
+        this._threejs = null;
+        this._camera = null;
+        this._scene = null;
+        this._controls = null;
+        this._composer = null;
+        this._planets = [];
+        this._sun = null;
+        this._celestialObjectMap.clear();
+        console.log('setting stop render to true');
+        this._stopRendering = true;
+        const popup = document.getElementById('popup');
+        if (popup) popup.style.display = 'none';
+        const controlspPopup = document.getElementById('controls-popup');
+        if (controlspPopup) controlspPopup.style.display = 'none';
+    }
+}
+
+},{"three":"ktPTu","three/examples/jsm/postprocessing/EffectComposer.js":"e5jie","three/examples/jsm/postprocessing/RenderPass.js":"hXnUO","three/examples/jsm/postprocessing/UnrealBloomPass.js":"3iDYE","../entities/spaceship.js":"1G6qx","../entities/camera.js":"h1onS","../entities/planet.js":"c8ajI","../entities/sun.js":"5HvsY","../assets/img/skybox/right.png":"6po0W","../assets/img/skybox/left.png":"7HFqk","../assets/img/skybox/top.png":"1XI2c","../assets/img/skybox/bottom.png":"fkp6S","../assets/img/skybox/front.png":"aB4Nd","../assets/img/skybox/back.png":"4iyDW","../assets/img/sun.jpg":"3NC5I","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ktPTu":[function(require,module,exports,__globalThis) {
 /**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -30041,384 +30605,7 @@ if (typeof window !== 'undefined') {
     else window.__THREE__ = REVISION;
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports,__globalThis) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, '__esModule', {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === 'default' || key === '__esModule' || Object.prototype.hasOwnProperty.call(dest, key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
-},{}],"h7r4N":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "WorldAppManager", ()=>WorldAppManager);
-parcelHelpers.export(exports, "SpaceApp", ()=>SpaceApp);
-parcelHelpers.export(exports, "PlanetApp", ()=>PlanetApp);
-var _fsm = require("./fsm");
-var _space = require("../apps/space");
-var _landedPlanet = require("../apps/landed-planet");
-class WorldAppManager extends (0, _fsm.FiniteStateMachine) {
-    constructor(){
-        super();
-    }
-    get CurrentState() {
-        return this._currentState;
-    }
-    AddApp(name, appClass) {
-        this._AddState(name, appClass);
-    }
-    SwitchApp(name, params) {
-        const prevState = this._currentState;
-        if (prevState) {
-            if (prevState.Name == name) return;
-            prevState.Exit();
-        }
-        const state = new this._states[name](this, params);
-        this._currentState = state;
-        state.Enter(prevState);
-    }
-}
-class App extends (0, _fsm.State) {
-    constructor(manager, params){
-        super(manager); // Pass the AppManager reference to the parent
-        this._params = params;
-    }
-    Enter(previousApp) {
-        console.log(`Entering app: ${this.constructor.name}`);
-    }
-    Exit() {
-        console.log(`Exiting app: ${this.constructor.name}`);
-    }
-    Update(timeElapsed, input) {}
-}
-class SpaceApp extends App {
-    constructor(manager, params){
-        super(manager, params);
-        this._spaceInstance = null;
-    }
-    get Name() {
-        return 'space';
-    }
-    Enter(previousApp) {
-        super.Enter(previousApp);
-        console.log('Entering SpaceApp');
-        this._spaceInstance = new (0, _space.Space)(this._params);
-    }
-    Exit() {
-        super.Exit();
-        console.log('Exiting SpaceApp');
-        // Clean up the Space instance
-        if (this._spaceInstance) {
-            this._spaceInstance.Cleanup();
-            this._spaceInstance = null;
-        }
-    }
-    Update(timeElapsed) {
-        if (this._spaceInstance) this._spaceInstance.Update(timeElapsed);
-    }
-    get LookedAtObject() {
-        return this._spaceInstance.LookedAtObject;
-    }
-}
-class PlanetApp extends App {
-    constructor(manager, params){
-        super(manager, params);
-        this._planetInstance = null;
-    }
-    get Name() {
-        return 'planet';
-    }
-    Enter(previousApp) {
-        super.Enter(previousApp);
-        console.log('Entering PlanetApp');
-        this._planetInstance = new (0, _landedPlanet.PlanetWorld)(this._params);
-    }
-    Exit() {
-        super.Exit();
-        console.log('Exiting SpaceApp');
-        // Clean up the Space instance
-        if (this._planetInstance) {
-            this._planetInstance.Cleanup();
-            this._planetInstance = null;
-        }
-    }
-    Update(timeElapsed) {
-        if (this._planetInstance) this._planetInstance.Update(timeElapsed);
-    }
-}
-
-},{"./fsm":"kLAq6","../apps/space":"8sLWo","../apps/landed-planet":"iExpn","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kLAq6":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "FiniteStateMachine", ()=>FiniteStateMachine);
-parcelHelpers.export(exports, "State", ()=>State);
-class FiniteStateMachine {
-    constructor(){
-        this._states = {};
-        this._currentState = null;
-    }
-    _AddState(name, type) {
-        this._states[name] = type;
-    }
-    SetState(name) {
-        const prevState = this._currentState;
-        if (prevState) {
-            if (prevState.Name == name) return;
-            prevState.Exit();
-        }
-        const state = new this._states[name](this);
-        this._currentState = state;
-        state.Enter(prevState);
-    }
-    Update(timeElapsed, input) {
-        if (this._currentState) this._currentState.Update(timeElapsed, input);
-    }
-}
-class State {
-    constructor(parent){
-        this._parent = parent;
-    }
-    Enter() {}
-    Exit() {}
-    Update() {}
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8sLWo":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Space", ()=>Space);
-var _three = require("three");
-var _effectComposerJs = require("three/examples/jsm/postprocessing/EffectComposer.js");
-var _renderPassJs = require("three/examples/jsm/postprocessing/RenderPass.js");
-var _unrealBloomPassJs = require("three/examples/jsm/postprocessing/UnrealBloomPass.js");
-var _spaceshipJs = require("../entities/spaceship.js");
-var _cameraJs = require("../entities/camera.js");
-var _planetJs = require("../entities/planet.js");
-var _sunJs = require("../entities/sun.js");
-var _rightPng = require("../assets/img/skybox/right.png");
-var _rightPngDefault = parcelHelpers.interopDefault(_rightPng);
-var _leftPng = require("../assets/img/skybox/left.png");
-var _leftPngDefault = parcelHelpers.interopDefault(_leftPng);
-var _topPng = require("../assets/img/skybox/top.png");
-var _topPngDefault = parcelHelpers.interopDefault(_topPng);
-var _bottomPng = require("../assets/img/skybox/bottom.png");
-var _bottomPngDefault = parcelHelpers.interopDefault(_bottomPng);
-var _frontPng = require("../assets/img/skybox/front.png");
-var _frontPngDefault = parcelHelpers.interopDefault(_frontPng);
-var _backPng = require("../assets/img/skybox/back.png");
-var _backPngDefault = parcelHelpers.interopDefault(_backPng);
-var _sunJpeg = require("../assets/img/sun.jpeg");
-var _sunJpegDefault = parcelHelpers.interopDefault(_sunJpeg);
-const SUN_RADIUS = 50;
-const FOV = 60;
-const ASPECT = 1920 / 1080;
-const NEAR = 1.0;
-const FAR = 100000.0;
-class Space {
-    constructor(params){
-        this._params = params;
-        console.log(params);
-        this._Initialize();
-    }
-    _Initialize() {
-        this._threejs = new _three.WebGLRenderer({
-            antialias: true
-        });
-        this._threejs.outputEncoding = _three.sRGBEncoding;
-        this._threejs.shadowMap.enabled = true;
-        this._threejs.shadowMap.type = _three.PCFSoftShadowMap;
-        this._threejs.setPixelRatio(window.devicePixelRatio);
-        this._threejs.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(this._threejs.domElement);
-        window.addEventListener('resize', ()=>{
-            this._OnWindowResize();
-        }, false);
-        this._camera = new _three.PerspectiveCamera(FOV, ASPECT, NEAR, FAR);
-        this._camera.position.set(0, 0, 0);
-        this._scene = new _three.Scene();
-        const ambientLight = new _three.AmbientLight(0x404040, 0.5);
-        this._scene.add(ambientLight);
-        const cubeTextureLoader = new _three.CubeTextureLoader();
-        this._scene.background = cubeTextureLoader.load([
-            (0, _rightPngDefault.default),
-            (0, _leftPngDefault.default),
-            (0, _topPngDefault.default),
-            (0, _bottomPngDefault.default),
-            (0, _frontPngDefault.default),
-            (0, _backPngDefault.default)
-        ]);
-        const controlspPopup = document.getElementById('controls-popup');
-        if (controlspPopup) controlspPopup.style.display = 'block';
-        this._LoadSun();
-        this._LoadPlanets();
-        this._LoadAnimatedModel();
-        this._LoadBloom();
-        this._stopRendering = false;
-        this._RAF();
-    }
-    _LoadSun() {
-        const params = {
-            scene: this._scene,
-            revolutionSpeed: 0.01,
-            radius: SUN_RADIUS,
-            texture: (0, _sunJpegDefault.default),
-            position: new _three.Vector3()
-        };
-        this._sun = new (0, _sunJs.Sun)(params);
-        this._sun.addTitle('Spencer Sweeney');
-    }
-    _LoadPlanets() {
-        this._planets = [];
-        this._params.planets.forEach((planet)=>{
-            this._planets.push(this._LoadPlanet(new _three.Vector3(), planet.revolutionSpeedFactor * SUN_RADIUS, planet.rotationSpeedFactor * SUN_RADIUS, planet.sizeFactor * SUN_RADIUS, planet.texture, new _three.Vector3(planet.positionFactor * SUN_RADIUS, 0, 0), planet.title));
-        });
-        this._planetMap = new Map();
-        this._planets.forEach((planet)=>{
-            if (planet) this._planetMap.set(planet.UUID, planet);
-        });
-    }
-    _LoadPlanet(orbitPoint, revolutionSpeed, rotationSpeed, radius, texture, position, title) {
-        const params = {
-            scene: this._scene,
-            orbitPoint: orbitPoint,
-            revolutionSpeed: revolutionSpeed,
-            rotationSpeed: rotationSpeed,
-            radius: radius,
-            texture: texture,
-            position: position,
-            title: title
-        };
-        return new (0, _planetJs.Planet)(params);
-    }
-    _LoadAnimatedModel() {
-        const params = {
-            camera: this._camera,
-            scene: this._scene
-        };
-        this._controls = new (0, _spaceshipJs.SpaceshipController)(params);
-        this._thirdPersonCamera = new (0, _cameraJs.ThirdPersonCamera)({
-            camera: this._camera,
-            target: this._controls
-        });
-    }
-    _LoadBloom() {
-        // Post-Processing Setup
-        this._composer = new (0, _effectComposerJs.EffectComposer)(this._threejs);
-        this._composer.addPass(new (0, _renderPassJs.RenderPass)(this._scene, this._camera));
-        // Unreal Bloom Pass
-        const bloomPass = new (0, _unrealBloomPassJs.UnrealBloomPass)(new _three.Vector2(window.innerWidth, window.innerHeight), 0.75, 0.4, 0.85 // Threshold
-        );
-        this._composer.addPass(bloomPass);
-    }
-    _OnWindowResize() {
-        this._camera.aspect = window.innerWidth / window.innerHeight;
-        this._camera.updateProjectionMatrix();
-        this._threejs.setSize(window.innerWidth, window.innerHeight);
-    }
-    _RAF() {
-        if (this._stopRendering) return;
-        requestAnimationFrame((t)=>{
-            if (this._stopRendering) return;
-            if (this._previousRAF === null) this._previousRAF = t;
-            this._RAF();
-            this._threejs.render(this._scene, this._camera);
-            this._Step(t - this._previousRAF);
-            this._previousRAF = t;
-        });
-    }
-    _Step(timeElapsed) {
-        if (!this._threejs || !this._scene || !this._camera) return;
-        const timeElapsedS = timeElapsed * 0.001;
-        if (this._mixers) this._mixers.map((m)=>m.update(timeElapsedS));
-        if (this._controls) this._controls.Update(timeElapsedS);
-        if (this._sun) {
-            this._sun.Update(timeElapsedS);
-            if (this._controls) this._sun.UpdateText(this._controls.Position);
-        }
-        if (this._planets) this._planets.forEach((planet)=>{
-            if (planet) {
-                planet.Update(timeElapsed);
-                if (this._controls) planet.UpdateText(this._controls.Position);
-            }
-        });
-        this._lookedAtObject = this._findObjectLookedAt();
-        if (this._lookedAtObject) {
-            const popup1 = document.getElementById('popup');
-            const popupTitle = document.getElementById('popup-title');
-            popupTitle.textContent = this._lookedAtObject.Title;
-            popup1.style.display = 'block';
-        } else popup.style.display = 'none';
-        this._composer.render();
-        this._thirdPersonCamera.Update(timeElapsedS);
-    }
-    _findObjectLookedAt() {
-        const raycaster = new _three.Raycaster();
-        const pointer = new _three.Vector2(0, 0);
-        raycaster.setFromCamera(pointer, this._camera);
-        // Check for intersections with objects in the scene
-        const intersects = raycaster.intersectObjects(this._scene.children, true);
-        const popup1 = document.getElementById('popup');
-        const popupTitle = document.getElementById('popup-title');
-        if (intersects.length > 0) {
-            // The first object in the intersects array is the closest one
-            const lookedAtObject = intersects[0].object;
-            const lookedAtPlanet = this._planetMap.get(lookedAtObject.uuid);
-            if (lookedAtPlanet) return lookedAtPlanet;
-            return null;
-        } else return null;
-    }
-    get LookedAtObject() {
-        return this._lookedAtObject;
-    }
-    Update(timeElapsed) {
-        this._Step(timeElapsed);
-    }
-    Cleanup() {
-        if (this._threejs) this._threejs.dispose();
-        if (this._scene) while(this._scene.children.length > 0)this._scene.remove(this._scene.children[0]);
-        window.removeEventListener('resize', this._OnWindowResize);
-        const canvas = this._threejs.domElement;
-        if (canvas && canvas.parentElement) canvas.parentElement.removeChild(canvas);
-        this._threejs = null;
-        this._camera = null;
-        this._scene = null;
-        this._controls = null;
-        this._composer = null;
-        this._planets = [];
-        this._sun = null;
-        this._planetMap.clear();
-        console.log('setting stop render to true');
-        this._stopRendering = true;
-        popup.style.display = 'none';
-        const controlspPopup = document.getElementById('controls-popup');
-        if (controlspPopup) controlspPopup.style.display = 'none';
-    }
-}
-
-},{"three":"ktPTu","three/examples/jsm/postprocessing/EffectComposer.js":"e5jie","three/examples/jsm/postprocessing/RenderPass.js":"hXnUO","three/examples/jsm/postprocessing/UnrealBloomPass.js":"3iDYE","../entities/spaceship.js":"1G6qx","../entities/camera.js":"h1onS","../entities/planet.js":"c8ajI","../entities/sun.js":"5HvsY","../assets/img/skybox/right.png":"6po0W","../assets/img/skybox/left.png":"7HFqk","../assets/img/skybox/top.png":"1XI2c","../assets/img/skybox/bottom.png":"fkp6S","../assets/img/skybox/front.png":"aB4Nd","../assets/img/skybox/back.png":"4iyDW","../assets/img/sun.jpeg":"dJmhx","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"e5jie":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"e5jie":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "EffectComposer", ()=>EffectComposer);
@@ -33872,17 +34059,18 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Planet", ()=>Planet);
 var _three = require("three");
 var _textGeometryJs = require("three/examples/jsm/geometries/TextGeometry.js");
-var _fontLoaderJs = require("three/examples/jsm/loaders/FontLoader.js");
+var _planetTextures = require("../materials/planet-textures");
+var _labelFont = require("../utils/label-font");
 class Planet {
     constructor(params){
         this._params = params;
         this._internalRotation = 0;
         this._orbitObject = new _three.Object3D();
         this._orbitObject.position.set(params.orbitPoint.x, params.orbitPoint.y, params.orbitPoint.z);
-        const geo = new _three.SphereGeometry(params.radius, 30, 30);
-        const mat = new _three.MeshStandardMaterial({
-            map: params.texture
-        });
+        const geo = new _three.SphereGeometry(params.radius, 64, 64);
+        const materialProps = this._createMaterialProps(params);
+        const mat = new _three.MeshPhysicalMaterial(materialProps);
+        this._labelTexture = materialProps.map || null;
         this._planetMesh = new _three.Mesh(geo, mat);
         this._orbitObject.add(this._planetMesh);
         this._planetMesh.position.set(params.position.x, params.position.y, params.position.z);
@@ -33898,10 +34086,12 @@ class Planet {
     get UUID() {
         return this._planetMesh.uuid;
     }
+    get RaycastObject() {
+        return this._planetMesh;
+    }
     _addTitle(text) {
         this._title = text;
-        const loader = new (0, _fontLoaderJs.FontLoader)();
-        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font)=>{
+        (0, _labelFont.loadLabelFont)().then((font)=>{
             const textGeometry = new (0, _textGeometryJs.TextGeometry)(text, {
                 font: font,
                 size: this._params.radius / 2,
@@ -33916,16 +34106,33 @@ class Planet {
             const yOffset = (boundingBox.max.y - boundingBox.min.y) / 2;
             const zOffset = (boundingBox.max.z - boundingBox.min.z) / 2;
             textGeometry.translate(-xOffset, -yOffset + 1.5 * this._params.radius, -zOffset);
-            const textMaterial = new _three.MeshStandardMaterial({
-                map: this._params.texture
+            const textMaterial = this._labelTexture ? new _three.MeshBasicMaterial({
+                map: this._labelTexture
+            }) : new _three.MeshBasicMaterial({
+                color: 0xffffff
             });
             this._textMesh = new _three.Mesh(textGeometry, textMaterial);
             this._textMesh.position.copy(this.Position);
             this._textMesh.scale.x = this._calcTextXScale(boundingBox);
             this._textMesh.scale.z = this._calcTextZScale(boundingBox);
-            this._textMesh.castShadow = true;
             this._params.scene.add(this._textMesh);
+        }).catch((error)=>{
+            console.error('Failed to load planet label font.', error);
         });
+    }
+    _createMaterialProps(params) {
+        const baseMaterial = params.textureKey ? (0, _planetTextures.getPlanetMaterialConfig)(params.textureKey) : null;
+        const materialProps = {
+            ...baseMaterial || {},
+            ...params.material || {}
+        };
+        if (!materialProps.map && params.texture) materialProps.map = params.texture;
+        if (!materialProps.map) throw new Error(`Planet '${this._params?.title || 'Unknown'}' is missing a base texture map.`);
+        if (!('roughness' in materialProps)) materialProps.roughness = 0.8;
+        if (!('metalness' in materialProps)) materialProps.metalness = 0.2;
+        if (materialProps.alphaMap && typeof materialProps.transparent === 'undefined') materialProps.transparent = true;
+        if (materialProps.bumpMap && typeof materialProps.bumpScale === 'undefined') materialProps.bumpScale = 0.03;
+        return materialProps;
     }
     _calcTextXScale(boundingBox) {
         const xWidth = boundingBox.max.x - boundingBox.min.x;
@@ -33974,7 +34181,7 @@ class Planet {
     }
 }
 
-},{"three":"ktPTu","three/examples/jsm/geometries/TextGeometry.js":"d5vi9","three/examples/jsm/loaders/FontLoader.js":"h0CPK","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"d5vi9":[function(require,module,exports,__globalThis) {
+},{"three":"ktPTu","three/examples/jsm/geometries/TextGeometry.js":"d5vi9","../materials/planet-textures":"dNg2F","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../utils/label-font":"b0Kzs"}],"d5vi9":[function(require,module,exports,__globalThis) {
 /**
  * Text = 3D Text
  *
@@ -34013,7 +34220,330 @@ class TextGeometry extends (0, _three.ExtrudeGeometry) {
     }
 }
 
-},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"h0CPK":[function(require,module,exports,__globalThis) {
+},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dNg2F":[function(require,module,exports,__globalThis) {
+// textures.js
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "getPlanetMaterialConfig", ()=>getPlanetMaterialConfig);
+parcelHelpers.export(exports, "hasPlanetMaterialConfig", ()=>hasPlanetMaterialConfig);
+parcelHelpers.export(exports, "getPlanetTexturePaths", ()=>getPlanetTexturePaths);
+var _three = require("three");
+var _coruscantDiffusePng = require("../assets/img/Coruscant/Coruscant (Diffuse).png");
+var _coruscantDiffusePngDefault = parcelHelpers.interopDefault(_coruscantDiffusePng);
+var _coruscantBumpPng = require("../assets/img/Coruscant/Coruscant (Bump).png");
+var _coruscantBumpPngDefault = parcelHelpers.interopDefault(_coruscantBumpPng);
+var _coruscantSpecularPng = require("../assets/img/Coruscant/Coruscant (Specular).png");
+var _coruscantSpecularPngDefault = parcelHelpers.interopDefault(_coruscantSpecularPng);
+var _coruscantLightsMetropolisPng = require("../assets/img/Coruscant/Coruscant (Lights Metropolis).png");
+var _coruscantLightsMetropolisPngDefault = parcelHelpers.interopDefault(_coruscantLightsMetropolisPng);
+var _csillaDiffuse4KPng = require("../assets/img/Csilla/Csilla (Diffuse 4k).png");
+var _csillaDiffuse4KPngDefault = parcelHelpers.interopDefault(_csillaDiffuse4KPng);
+var _csillaBump4KPng = require("../assets/img/Csilla/Csilla (Bump 4k).png");
+var _csillaBump4KPngDefault = parcelHelpers.interopDefault(_csillaBump4KPng);
+var _csillaRoughness4KPng = require("../assets/img/Csilla/Csilla (Roughness 4k).png");
+var _csillaRoughness4KPngDefault = parcelHelpers.interopDefault(_csillaRoughness4KPng);
+var _csillaLightsMetropolis4KPng = require("../assets/img/Csilla/Csilla (Lights Metropolis 4k).png");
+var _csillaLightsMetropolis4KPngDefault = parcelHelpers.interopDefault(_csillaLightsMetropolis4KPng);
+var _narShaddaaDiffuse4KPng = require("../assets/img/NarShaddaa/Nar Shaddaa (Diffuse 4k).png");
+var _narShaddaaDiffuse4KPngDefault = parcelHelpers.interopDefault(_narShaddaaDiffuse4KPng);
+var _narShaddaaBump4KPng = require("../assets/img/NarShaddaa/Nar Shaddaa (Bump 4k).png");
+var _narShaddaaBump4KPngDefault = parcelHelpers.interopDefault(_narShaddaaBump4KPng);
+var _narShaddaaRoughness4KPng = require("../assets/img/NarShaddaa/Nar Shaddaa (Roughness 4k).png");
+var _narShaddaaRoughness4KPngDefault = parcelHelpers.interopDefault(_narShaddaaRoughness4KPng);
+var _narShaddaaLightsMetropolis4KPng = require("../assets/img/NarShaddaa/Nar Shaddaa (Lights Metropolis 4k).png");
+var _narShaddaaLightsMetropolis4KPngDefault = parcelHelpers.interopDefault(_narShaddaaLightsMetropolis4KPng);
+var _narShaddaaWater4KPng = require("../assets/img/NarShaddaa/Nar Shaddaa (Water 4k).png");
+var _narShaddaaWater4KPngDefault = parcelHelpers.interopDefault(_narShaddaaWater4KPng);
+var _desert05DiffusePng = require("../assets/img/Desert/Desert 05 (Diffuse).png");
+var _desert05DiffusePngDefault = parcelHelpers.interopDefault(_desert05DiffusePng);
+var _desert05BumpPng = require("../assets/img/Desert/Desert 05 (Bump).png");
+var _desert05BumpPngDefault = parcelHelpers.interopDefault(_desert05BumpPng);
+var _desert05SpecularPng = require("../assets/img/Desert/Desert 05 (Specular).png");
+var _desert05SpecularPngDefault = parcelHelpers.interopDefault(_desert05SpecularPng);
+var _desert05LightsUrbanPng = require("../assets/img/Desert/Desert 05 (Lights Urban).png");
+var _desert05LightsUrbanPngDefault = parcelHelpers.interopDefault(_desert05LightsUrbanPng);
+var _korribanDiffuse4KPng = require("../assets/img/Korriban/Korriban (Diffuse 4k).png");
+var _korribanDiffuse4KPngDefault = parcelHelpers.interopDefault(_korribanDiffuse4KPng);
+var _korribanBump4KPng = require("../assets/img/Korriban/Korriban (Bump 4k).png");
+var _korribanBump4KPngDefault = parcelHelpers.interopDefault(_korribanBump4KPng);
+var _korribanRoughness4KPng = require("../assets/img/Korriban/Korriban (Roughness 4k).png");
+var _korribanRoughness4KPngDefault = parcelHelpers.interopDefault(_korribanRoughness4KPng);
+// NOTE: Use with THREE.MeshPhysicalMaterial.
+// - Color textures (albedo/lights) => colorSpace = SRGB
+// - Non-color data (bump/roughness/specularIntensity) => leave linear
+// - Planets are dielectrics => metalness = 0
+const SRGB_COLORSPACE = _three.SRGBColorSpace || 'srgb';
+const PLANET_TEXTURE_SOURCES = {
+    coruscant: {
+        textures: {
+            map: {
+                path: (0, _coruscantDiffusePngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            },
+            bumpMap: {
+                path: (0, _coruscantBumpPngDefault.default)
+            },
+            specularIntensityMap: {
+                path: (0, _coruscantSpecularPngDefault.default)
+            },
+            emissiveMap: {
+                path: (0, _coruscantLightsMetropolisPngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            }
+        },
+        options: {
+            bumpScale: 0.045,
+            // Coruscant spec map is very bright → keep fairly rough and dim specular color
+            roughness: 0.75,
+            metalness: 0.0,
+            // Dims warmth from specular highlights (MeshPhysicalMaterial supports specularColor)
+            specularColor: new _three.Color(0xaaaaaa),
+            emissive: new _three.Color(0xffffff),
+            emissiveIntensity: 0.15
+        }
+    },
+    csilla: {
+        textures: {
+            map: {
+                path: (0, _csillaDiffuse4KPngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            },
+            bumpMap: {
+                path: (0, _csillaBump4KPngDefault.default)
+            },
+            roughnessMap: {
+                path: (0, _csillaRoughness4KPngDefault.default)
+            },
+            emissiveMap: {
+                path: (0, _csillaLightsMetropolis4KPngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            }
+        },
+        options: {
+            bumpScale: 0.065,
+            roughness: 0.85,
+            metalness: 0.0,
+            specularColor: new _three.Color(0xdddddd),
+            emissive: new _three.Color(0xffffff),
+            emissiveIntensity: 0.3
+        }
+    },
+    narShaddaa: {
+        textures: {
+            map: {
+                path: (0, _narShaddaaDiffuse4KPngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            },
+            bumpMap: {
+                path: (0, _narShaddaaBump4KPngDefault.default)
+            },
+            roughnessMap: {
+                path: (0, _narShaddaaRoughness4KPngDefault.default)
+            },
+            specularIntensityMap: {
+                path: (0, _narShaddaaWater4KPngDefault.default)
+            },
+            emissiveMap: {
+                path: (0, _narShaddaaLightsMetropolis4KPngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            }
+        },
+        options: {
+            bumpScale: 0.05,
+            roughness: 0.75,
+            metalness: 0.0,
+            specularColor: new _three.Color(0xbbbbbb),
+            emissive: new _three.Color(0xffffff),
+            emissiveIntensity: 0.18
+        }
+    },
+    desert: {
+        textures: {
+            map: {
+                path: (0, _desert05DiffusePngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            },
+            bumpMap: {
+                path: (0, _desert05BumpPngDefault.default)
+            },
+            specularIntensityMap: {
+                path: (0, _desert05SpecularPngDefault.default)
+            },
+            emissiveMap: {
+                path: (0, _desert05LightsUrbanPngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            }
+        },
+        options: {
+            bumpScale: 0.035,
+            roughness: 0.7,
+            metalness: 0.0,
+            specularColor: new _three.Color(0xcccccc),
+            emissive: new _three.Color(0xffffff),
+            emissiveIntensity: 0.2
+        }
+    },
+    korriban: {
+        textures: {
+            map: {
+                path: (0, _korribanDiffuse4KPngDefault.default),
+                colorSpace: SRGB_COLORSPACE
+            },
+            bumpMap: {
+                path: (0, _korribanBump4KPngDefault.default)
+            },
+            roughnessMap: {
+                path: (0, _korribanRoughness4KPngDefault.default)
+            }
+        },
+        options: {
+            bumpScale: 0.05,
+            roughness: 0.8,
+            metalness: 0.0,
+            specularColor: new _three.Color(0xaaaaaa),
+            emissive: new _three.Color(0x331111),
+            emissiveIntensity: 0.05
+        }
+    }
+};
+const textureLoader = new _three.TextureLoader();
+const materialCache = new Map();
+function applyColorSpace(texture, colorSpace) {
+    if (!texture || !colorSpace) return;
+    const wantsSRGB = colorSpace === SRGB_COLORSPACE || colorSpace === _three.SRGBColorSpace || colorSpace === 'srgb';
+    if (wantsSRGB) {
+        if ('colorSpace' in texture && _three.SRGBColorSpace) {
+            texture.colorSpace = _three.SRGBColorSpace;
+            return;
+        }
+        if ('encoding' in texture && typeof _three.sRGBEncoding !== 'undefined') texture.encoding = _three.sRGBEncoding;
+    }
+}
+function loadTextureFromDescriptor(descriptor = {}) {
+    if (!descriptor.path) return null;
+    const texture = textureLoader.load(descriptor.path);
+    // Modern three.js: set colorSpace (or encoding) only for color data
+    if (descriptor.colorSpace) applyColorSpace(texture, descriptor.colorSpace);
+    if (descriptor.wrapS) texture.wrapS = descriptor.wrapS;
+    if (descriptor.wrapT) texture.wrapT = descriptor.wrapT;
+    if (descriptor.repeat) {
+        const repeatX = descriptor.repeat.x ?? descriptor.repeat[0] ?? 1;
+        const repeatY = descriptor.repeat.y ?? descriptor.repeat[1] ?? 1;
+        texture.repeat.set(repeatX, repeatY);
+    }
+    if (typeof descriptor.flipY === 'boolean') texture.flipY = descriptor.flipY;
+    return texture;
+}
+function buildMaterialConfig(definition) {
+    const materialProps = {
+        ...definition.options || {}
+    };
+    Object.entries(definition.textures || {}).forEach(([materialProp, descriptor])=>{
+        const texture = loadTextureFromDescriptor(descriptor);
+        if (texture) materialProps[materialProp] = texture;
+    });
+    return materialProps;
+}
+function getPlanetMaterialConfig(key) {
+    if (!key) return null;
+    if (materialCache.has(key)) return materialCache.get(key);
+    const definition = PLANET_TEXTURE_SOURCES[key];
+    if (!definition) return null;
+    const materialProps = buildMaterialConfig(definition);
+    materialCache.set(key, materialProps);
+    return materialProps;
+}
+function hasPlanetMaterialConfig(key) {
+    return Boolean(PLANET_TEXTURE_SOURCES[key]);
+}
+function getPlanetTexturePaths(keys) {
+    const paths = new Set();
+    const targetKeys = Array.isArray(keys) && keys.length ? keys.filter((key)=>PLANET_TEXTURE_SOURCES[key]) : Object.keys(PLANET_TEXTURE_SOURCES);
+    targetKeys.forEach((key)=>{
+        const definition = PLANET_TEXTURE_SOURCES[key];
+        Object.values(definition?.textures || {}).forEach((descriptor = {})=>{
+            if (descriptor.path) paths.add(descriptor.path);
+        });
+    });
+    return Array.from(paths);
+}
+
+},{"three":"ktPTu","../assets/img/Coruscant/Coruscant (Diffuse).png":"heNcD","../assets/img/Coruscant/Coruscant (Bump).png":"4R4Kt","../assets/img/Coruscant/Coruscant (Specular).png":"3JqNr","../assets/img/Coruscant/Coruscant (Lights Metropolis).png":"a5J9O","../assets/img/Csilla/Csilla (Diffuse 4k).png":"hI3mj","../assets/img/Csilla/Csilla (Bump 4k).png":"686Sp","../assets/img/Csilla/Csilla (Roughness 4k).png":"2WYuG","../assets/img/Csilla/Csilla (Lights Metropolis 4k).png":"ijnCD","../assets/img/NarShaddaa/Nar Shaddaa (Diffuse 4k).png":"d5Xv5","../assets/img/NarShaddaa/Nar Shaddaa (Bump 4k).png":"lWsUr","../assets/img/NarShaddaa/Nar Shaddaa (Roughness 4k).png":"ibVkQ","../assets/img/NarShaddaa/Nar Shaddaa (Lights Metropolis 4k).png":"iVPIZ","../assets/img/NarShaddaa/Nar Shaddaa (Water 4k).png":"5oTPU","../assets/img/Desert/Desert 05 (Diffuse).png":"4Rdhb","../assets/img/Desert/Desert 05 (Bump).png":"cwhf6","../assets/img/Desert/Desert 05 (Specular).png":"dC1Qh","../assets/img/Desert/Desert 05 (Lights Urban).png":"a8nph","../assets/img/Korriban/Korriban (Diffuse 4k).png":"5m1sN","../assets/img/Korriban/Korriban (Bump 4k).png":"kWUA7","../assets/img/Korriban/Korriban (Roughness 4k).png":"4JQyf","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"heNcD":[function(require,module,exports,__globalThis) {
+module.exports = require("fd9a09cf88f9d7cf").getBundleURL('bOwwI') + "Coruscant (Diffuse).9d472f2f.png" + "?" + Date.now();
+
+},{"fd9a09cf88f9d7cf":"lgJ39"}],"4R4Kt":[function(require,module,exports,__globalThis) {
+module.exports = require("a1ad8ae34aa560da").getBundleURL('bOwwI') + "Coruscant (Bump).3a354b97.png" + "?" + Date.now();
+
+},{"a1ad8ae34aa560da":"lgJ39"}],"3JqNr":[function(require,module,exports,__globalThis) {
+module.exports = require("b7f12f46562b6063").getBundleURL('bOwwI') + "Coruscant (Specular).ea702025.png" + "?" + Date.now();
+
+},{"b7f12f46562b6063":"lgJ39"}],"a5J9O":[function(require,module,exports,__globalThis) {
+module.exports = require("e81c66319a63161c").getBundleURL('bOwwI') + "Coruscant (Lights Metropolis).e22019d9.png" + "?" + Date.now();
+
+},{"e81c66319a63161c":"lgJ39"}],"hI3mj":[function(require,module,exports,__globalThis) {
+module.exports = require("59f4f615a4fa7a0f").getBundleURL('bOwwI') + "Csilla (Diffuse 4k).f822fbbd.png" + "?" + Date.now();
+
+},{"59f4f615a4fa7a0f":"lgJ39"}],"686Sp":[function(require,module,exports,__globalThis) {
+module.exports = require("2a335425ed0fc925").getBundleURL('bOwwI') + "Csilla (Bump 4k).60c312d5.png" + "?" + Date.now();
+
+},{"2a335425ed0fc925":"lgJ39"}],"2WYuG":[function(require,module,exports,__globalThis) {
+module.exports = require("94fdcd9897c7099").getBundleURL('bOwwI') + "Csilla (Roughness 4k).2cf07c71.png" + "?" + Date.now();
+
+},{"94fdcd9897c7099":"lgJ39"}],"ijnCD":[function(require,module,exports,__globalThis) {
+module.exports = require("5f674d2d67d6a4e2").getBundleURL('bOwwI') + "Csilla (Lights Metropolis 4k).2ed991ee.png" + "?" + Date.now();
+
+},{"5f674d2d67d6a4e2":"lgJ39"}],"d5Xv5":[function(require,module,exports,__globalThis) {
+module.exports = require("cfeba662930e9499").getBundleURL('bOwwI') + "Nar Shaddaa (Diffuse 4k).e7227c78.png" + "?" + Date.now();
+
+},{"cfeba662930e9499":"lgJ39"}],"lWsUr":[function(require,module,exports,__globalThis) {
+module.exports = require("a31d4b44f1a37b6a").getBundleURL('bOwwI') + "Nar Shaddaa (Bump 4k).c556c763.png" + "?" + Date.now();
+
+},{"a31d4b44f1a37b6a":"lgJ39"}],"ibVkQ":[function(require,module,exports,__globalThis) {
+module.exports = require("78636cbe10f97778").getBundleURL('bOwwI') + "Nar Shaddaa (Roughness 4k).ab8ebb5f.png" + "?" + Date.now();
+
+},{"78636cbe10f97778":"lgJ39"}],"iVPIZ":[function(require,module,exports,__globalThis) {
+module.exports = require("4368af3eb75c40a5").getBundleURL('bOwwI') + "Nar Shaddaa (Lights Metropolis 4k).3be6bb89.png" + "?" + Date.now();
+
+},{"4368af3eb75c40a5":"lgJ39"}],"5oTPU":[function(require,module,exports,__globalThis) {
+module.exports = require("51c43dbe703ebba9").getBundleURL('bOwwI') + "Nar Shaddaa (Water 4k).8a4bd50c.png" + "?" + Date.now();
+
+},{"51c43dbe703ebba9":"lgJ39"}],"4Rdhb":[function(require,module,exports,__globalThis) {
+module.exports = require("d9d1aa1ee8503316").getBundleURL('bOwwI') + "Desert 05 (Diffuse).5fcab31d.png" + "?" + Date.now();
+
+},{"d9d1aa1ee8503316":"lgJ39"}],"cwhf6":[function(require,module,exports,__globalThis) {
+module.exports = require("7bd836e0722e5168").getBundleURL('bOwwI') + "Desert 05 (Bump).aeb2a256.png" + "?" + Date.now();
+
+},{"7bd836e0722e5168":"lgJ39"}],"dC1Qh":[function(require,module,exports,__globalThis) {
+module.exports = require("df41a1640875dc4").getBundleURL('bOwwI') + "Desert 05 (Specular).43ce7138.png" + "?" + Date.now();
+
+},{"df41a1640875dc4":"lgJ39"}],"a8nph":[function(require,module,exports,__globalThis) {
+module.exports = require("448a05c7621c6068").getBundleURL('bOwwI') + "Desert 05 (Lights Urban).b8c80833.png" + "?" + Date.now();
+
+},{"448a05c7621c6068":"lgJ39"}],"5m1sN":[function(require,module,exports,__globalThis) {
+module.exports = require("e27d6a1670df0a34").getBundleURL('bOwwI') + "Korriban (Diffuse 4k).15719771.png" + "?" + Date.now();
+
+},{"e27d6a1670df0a34":"lgJ39"}],"kWUA7":[function(require,module,exports,__globalThis) {
+module.exports = require("df5d0d3421e2af8f").getBundleURL('bOwwI') + "Korriban (Bump 4k).83f43110.png" + "?" + Date.now();
+
+},{"df5d0d3421e2af8f":"lgJ39"}],"4JQyf":[function(require,module,exports,__globalThis) {
+module.exports = require("55917dc0e8dd188c").getBundleURL('bOwwI') + "Korriban (Roughness 4k).ba3d697f.png" + "?" + Date.now();
+
+},{"55917dc0e8dd188c":"lgJ39"}],"b0Kzs":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "loadLabelFont", ()=>loadLabelFont);
+var _fontLoaderJs = require("three/examples/jsm/loaders/FontLoader.js");
+const LABEL_FONT_URL = 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json';
+let fontPromise = null;
+const loader = new (0, _fontLoaderJs.FontLoader)();
+function loadLabelFont() {
+    if (!fontPromise) fontPromise = new Promise((resolve, reject)=>{
+        loader.load(LABEL_FONT_URL, resolve, undefined, reject);
+    });
+    return fontPromise;
+}
+
+},{"three/examples/jsm/loaders/FontLoader.js":"h0CPK","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"h0CPK":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "FontLoader", ()=>FontLoader);
@@ -34132,7 +34662,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Sun", ()=>Sun);
 var _three = require("three");
 var _textGeometryJs = require("three/examples/jsm/geometries/TextGeometry.js");
-var _fontLoaderJs = require("three/examples/jsm/loaders/FontLoader.js");
+var _labelFont = require("../utils/label-font");
 class Sun {
     constructor(params){
         this._params = params;
@@ -34146,7 +34676,7 @@ class Sun {
         });
         this._sunMesh = new _three.Mesh(geo, mat);
         // Add a Point Light at the Sun's Position
-        const sunLight = new _three.PointLight(0xffffff, 3, 750);
+        const sunLight = new _three.PointLight(0xffffff, 1.5, 750);
         sunLight.position.set(params.position.x, params.position.y, params.position.z);
         this._params.scene.add(sunLight);
         this._sunMesh.position.set(params.position.x, params.position.y, params.position.z);
@@ -34155,12 +34685,17 @@ class Sun {
     get Position() {
         return this._sunMesh.position;
     }
+    get UUID() {
+        return this._sunMesh.uuid;
+    }
     get Title() {
         return this._title;
     }
+    get RaycastObject() {
+        return this._sunMesh;
+    }
     addTitle(text) {
         this._title = text;
-        const loader = new (0, _fontLoaderJs.FontLoader)();
         // Remove existing text mesh if it exists
         if (this._textMesh) {
             this._params.scene.remove(this._textMesh);
@@ -34168,7 +34703,7 @@ class Sun {
             this._textMesh.material.dispose();
             this._textMesh = null;
         }
-        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font)=>{
+        (0, _labelFont.loadLabelFont)().then((font)=>{
             const textGeometry = new (0, _textGeometryJs.TextGeometry)(text, {
                 font: font,
                 size: this._params.radius / 2,
@@ -34191,8 +34726,9 @@ class Sun {
             this._textMesh.position.y += 1.5 * this._params.radius;
             this._textMesh.scale.x = this._calcTextXScale(boundingBox);
             this._textMesh.scale.z = this._calcTextZScale(boundingBox);
-            this._textMesh.castShadow = true;
             this._params.scene.add(this._textMesh);
+        }).catch((error)=>{
+            console.error('Failed to load sun label font.', error);
         });
     }
     _calcTextXScale(boundingBox) {
@@ -34219,7 +34755,7 @@ class Sun {
     }
 }
 
-},{"three":"ktPTu","three/examples/jsm/geometries/TextGeometry.js":"d5vi9","three/examples/jsm/loaders/FontLoader.js":"h0CPK","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6po0W":[function(require,module,exports,__globalThis) {
+},{"three":"ktPTu","three/examples/jsm/geometries/TextGeometry.js":"d5vi9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../utils/label-font":"b0Kzs"}],"6po0W":[function(require,module,exports,__globalThis) {
 module.exports = require("9bf648b8ffdc6aa3").getBundleURL('bOwwI') + "right.1f1f2bba.png" + "?" + Date.now();
 
 },{"9bf648b8ffdc6aa3":"lgJ39"}],"7HFqk":[function(require,module,exports,__globalThis) {
@@ -34237,538 +34773,429 @@ module.exports = require("83370f67360f75f7").getBundleURL('bOwwI') + "front.5d84
 },{"83370f67360f75f7":"lgJ39"}],"4iyDW":[function(require,module,exports,__globalThis) {
 module.exports = require("509791e8d3448db9").getBundleURL('bOwwI') + "back.4ac101fe.png" + "?" + Date.now();
 
-},{"509791e8d3448db9":"lgJ39"}],"dJmhx":[function(require,module,exports,__globalThis) {
-module.exports = require("8739c2d5b38af1d6").getBundleURL('bOwwI') + "sun.1770bc52.jpeg" + "?" + Date.now();
+},{"509791e8d3448db9":"lgJ39"}],"3NC5I":[function(require,module,exports,__globalThis) {
+module.exports = require("42efbb7d870bc297").getBundleURL('bOwwI') + "sun.a794327c.jpg" + "?" + Date.now();
 
-},{"8739c2d5b38af1d6":"lgJ39"}],"iExpn":[function(require,module,exports,__globalThis) {
+},{"42efbb7d870bc297":"lgJ39"}],"iExpn":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "PlanetWorld", ()=>PlanetWorld);
-var _three = require("three");
-var _rgbeloaderJs = require("three/examples/jsm/loaders/RGBELoader.js");
-var _skyHDRHdr = require("../assets/img/skyHDR.hdr");
-var _skyHDRHdrDefault = parcelHelpers.interopDefault(_skyHDRHdr);
-const FOV = 60;
-const ASPECT = 1920 / 1080;
-const NEAR = 1;
-const FAR = 1000.0;
+var _crawlController = require("./crawl-controller");
 class PlanetWorld {
     constructor(params){
         this._title = params.title;
-        this._planetTexture = params.texture;
-        this._contentSections = params.contentSections;
-        this._scrollPosition = 0;
-        this._isScrolling = true;
-        this._scrollSpeed = 1;
+        this._crawlTitle = params.crawlTitle;
+        this._crawlText = params.crawlText;
+        this._crawlIntro = params.crawlIntro;
+        this._layout = params.layout || 'crawl';
+        this._contactIntro = params.contactIntro;
+        this._contactHeading = params.contactHeading;
+        this._contactDetails = params.contactDetails;
+        this._stars = [];
+        this._frameId = null;
+        this._elements = {};
+        this._crawlContainer = null;
+        this._crawlController = null;
+        this._overlayHideTimeout = null;
+        this._overlayFadeTimeout = null;
+        this._resizeHandler = this._OnWindowResize.bind(this);
+        this._animateStars = this._AnimateStars.bind(this);
         this._Initialize();
     }
     _Initialize() {
-        this._threejs = new _three.WebGLRenderer({
-            antialias: true
-        });
-        this._threejs.outputEncoding = _three.sRGBEncoding;
-        this._threejs.shadowMap.enabled = true;
-        this._threejs.shadowMap.type = _three.PCFSoftShadowMap;
-        this._threejs.setPixelRatio(window.devicePixelRatio);
-        this._threejs.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(this._threejs.domElement);
-        window.addEventListener('resize', ()=>{
-            this._OnWindowResize();
-        }, false);
-        this._camera = new _three.PerspectiveCamera(FOV, ASPECT, NEAR, FAR);
-        this._camera.position.set(25, 20, 25);
-        this._camera.rotateX(Math.PI / 12);
-        this._scene = new _three.Scene();
-        const light = new _three.AmbientLight(0xFFFFFF, 0.25);
-        this._scene.add(light);
+        this._CacheElements();
+        this._SetupUI();
+        this._PrepareStars();
+        window.addEventListener('resize', this._resizeHandler, false);
+        this._frameId = requestAnimationFrame(this._animateStars);
+        if (this._layout === 'contact') {
+            this._RenderContactPanel();
+            return;
+        }
+        this._RenderContent();
+        this._PlayIntroSequence();
+    }
+    _CacheElements() {
+        this._elements.content = document.getElementById('content');
+        this._elements.starCanvas = document.getElementById('crawl-stars');
+        this._elements.introOverlay = document.getElementById('intro-overlay');
+        this._elements.introText = document.getElementById('intro-text');
+        this._elements.crawlContainer = document.querySelector('.crawl-container');
+        this._elements.crawlTitle = document.getElementById('crawl-title');
+        this._elements.contentInfo = document.getElementById('content-info');
+        this._elements.contactPanel = document.getElementById('contact-panel');
+        this._elements.contactTitle = document.getElementById('contact-title');
+        this._elements.contactIntro = document.getElementById('contact-intro');
+        this._elements.contactDetails = document.getElementById('contact-details');
+        this._crawlContainer = this._elements.crawlContainer;
+        if (this._crawlContainer) this._crawlController = new (0, _crawlController.CrawlController)(this._crawlContainer);
+    }
+    _SetupUI() {
         const popup = document.getElementById('esc-popup');
         if (popup) popup.style.display = 'block';
-        this._LoadAtmosphere();
-        this._LoadGround();
-        this._LoadContent();
-        this._SetupScrollControls();
-        this._mixers = [];
-        this._previousRAF = null;
-        this._RAF();
+        if (this._elements.content) this._elements.content.style.display = 'block';
     }
-    _LoadAtmosphere() {
-        // Create a space-like background
-        const spaceGeometry = new _three.SphereGeometry(1000, 32, 32);
-        const spaceMaterial = new _three.ShaderMaterial({
-            uniforms: {
-                time: {
-                    value: 0
-                },
-                colorA: {
-                    value: new _three.Color(0x000000)
-                },
-                colorB: {
-                    value: new _three.Color(0x000033)
-                }
-            },
-            vertexShader: `
-                varying vec2 vUv;
-                void main() {
-                    vUv = uv;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform float time;
-                uniform vec3 colorA;
-                uniform vec3 colorB;
-                varying vec2 vUv;
-                void main() {
-                    float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
-                    float pattern = sin(vUv.x * 10.0 + time) * sin(vUv.y * 10.0 + time) * noise;
-                    vec3 color = mix(colorA, colorB, pattern);
-                    gl_FragColor = vec4(color, 1.0);
-                }
-            `
-        });
-        const spaceSphere = new _three.Mesh(spaceGeometry, spaceMaterial);
-        spaceSphere.material.side = _three.BackSide;
-        this._scene.add(spaceSphere);
-        this._spaceMaterial = spaceMaterial;
+    _PrepareStars() {
+        const canvas = this._elements.starCanvas;
+        if (!canvas) return;
+        this._ctx = canvas.getContext('2d');
+        this._ResizeCanvas();
+        this._CreateStars();
     }
-    _SetupScrollControls() {
-        const content = document.getElementById('content');
-        const crawlContainer = document.querySelector('.crawl-container');
-        // Add scroll controls popup
-        const scrollControls = document.createElement('div');
-        scrollControls.id = 'scroll-controls';
-        scrollControls.style.cssText = `
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            z-index: 1000;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            display: none;
-        `;
-        scrollControls.innerHTML = `
-            <h3 style="margin: 0 0 10px 0; color: #4CAF50;">Scroll Controls</h3>
-            <p style="margin: 5px 0;">Space - Pause/Resume Scroll</p>
-            <p style="margin: 5px 0;">Mouse/Trackpad - Manual Scroll</p>
-        `;
-        document.body.appendChild(scrollControls);
-        // Handle space key for pause/resume
-        document.addEventListener('keydown', (e)=>{
-            if (e.code === 'Space') {
-                e.preventDefault();
-                this._isScrolling = !this._isScrolling;
-                if (this._isScrolling) crawlContainer.style.animation = 'crawl 60s linear forwards';
-                else crawlContainer.style.animation = 'none';
-            }
-        });
-        // Handle mouse/trackpad scroll
-        content.addEventListener('wheel', (e)=>{
-            e.preventDefault();
-            this._isScrolling = false;
-            crawlContainer.style.animation = 'none';
-            const scrollAmount = e.deltaY;
-            this._scrollPosition += scrollAmount * 0.5;
-            // Limit scroll position
-            this._scrollPosition = Math.max(-6000, Math.min(0, this._scrollPosition));
-            crawlContainer.style.transform = `rotateX(25deg) translateY(${this._scrollPosition}px)`;
-        });
-        // Show/hide controls on hover
-        content.addEventListener('mouseenter', ()=>{
-            scrollControls.style.display = 'block';
-        });
-        content.addEventListener('mouseleave', ()=>{
-            scrollControls.style.display = 'none';
-        });
+    _ResizeCanvas() {
+        const canvas = this._elements.starCanvas;
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
     }
-    _LoadGround() {
-        const planeGeometry = new _three.PlaneGeometry(1000, 1000, 100, 100);
-        const planeMaterial = new _three.MeshStandardMaterial({
-            map: this._planetTexture,
-            roughness: 0.9,
-            metalness: 0.2,
-            wireframe: false
-        });
-        const plane = new _three.Mesh(planeGeometry, planeMaterial);
-        plane.rotation.x = -Math.PI / 2;
-        // Use a Perlin noise function for terrain displacement
-        const vertices = planeGeometry.attributes.position.array;
-        for(let i = 0; i < vertices.length; i += 3)vertices[i + 2] = Math.random() * 5; // Displace z for rough terrain
-        planeGeometry.computeVertexNormals(); // Recompute normals for lighting
-        this._scene.add(plane);
+    _CreateStars() {
+        const canvas = this._elements.starCanvas;
+        if (!canvas) return;
+        const starCount = Math.floor((canvas.width + canvas.height) * 0.4);
+        this._stars = Array.from({
+            length: starCount
+        }, ()=>({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 1.2 + 0.2,
+                alpha: Math.random(),
+                twinkle: Math.random() * 0.02 + 0.005
+            }));
     }
-    _LoadContent() {
-        const content = document.getElementById('content');
-        const contentTitle = document.getElementById('content-title');
-        const contentInfo = document.getElementById('content-info');
-        const planetBackgroundCanvas = document.getElementById('planet-background-canvas');
-        const ctx = planetBackgroundCanvas.getContext('2d');
-        // Set canvas size to match window
-        planetBackgroundCanvas.width = window.innerWidth;
-        planetBackgroundCanvas.height = window.innerHeight;
-        // Create a temporary canvas to render the texture
-        if (this._planetTexture && this._planetTexture.image) {
-            const tempCanvas = document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCanvas.width = this._planetTexture.image.width;
-            tempCanvas.height = this._planetTexture.image.height;
-            tempCtx.drawImage(this._planetTexture.image, 0, 0);
-            // Draw the texture to the background canvas
-            ctx.drawImage(tempCanvas, 0, 0, planetBackgroundCanvas.width, planetBackgroundCanvas.height);
-            planetBackgroundCanvas.style.display = 'block';
-        } else {
-            console.log('No valid planet texture available');
-            planetBackgroundCanvas.style.display = 'none';
+    _AnimateStars() {
+        if (!this._ctx || !this._elements.starCanvas) return;
+        const canvas = this._elements.starCanvas;
+        this._ctx.fillStyle = '#000';
+        this._ctx.fillRect(0, 0, canvas.width, canvas.height);
+        this._stars.forEach((star)=>{
+            star.alpha += star.twinkle;
+            if (star.alpha <= 0 || star.alpha >= 1) star.twinkle *= -1;
+            this._ctx.beginPath();
+            this._ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+            this._ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            this._ctx.fill();
+        });
+        this._frameId = requestAnimationFrame(this._animateStars);
+    }
+    _RenderContent() {
+        if (this._layout === 'contact') return;
+        const { crawlTitle, contentInfo } = this._elements;
+        if (crawlTitle) {
+            crawlTitle.textContent = this._crawlTitle || '';
+            crawlTitle.style.display = this._crawlTitle ? 'block' : 'none';
         }
-        contentInfo.innerHTML = '';
-        contentTitle.textContent = this._title;
-        const contentSections = this._contentSections;
-        contentSections.forEach((section)=>{
-            const sectionContainer = document.createElement('div');
-            const sectionTitle = document.createElement('h3');
-            sectionTitle.textContent = section.sectionTitle;
-            sectionContainer.appendChild(sectionTitle);
-            const sectionDescription = document.createElement('p');
-            sectionDescription.textContent = section.description;
-            sectionContainer.appendChild(sectionDescription);
-            if (section.items && section.items.length > 0) {
-                const ul = document.createElement('ul');
-                section.items.forEach((item)=>{
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    ul.appendChild(li);
-                });
-                sectionContainer.appendChild(ul);
-            }
-            contentInfo.appendChild(sectionContainer);
+        if (contentInfo) {
+            contentInfo.innerHTML = '';
+            const paragraphs = (this._crawlText || '').split('\n').map((text)=>text.trim()).filter((text)=>text.length > 0);
+            if (paragraphs.length === 0) {
+                const fallback = document.createElement('p');
+                fallback.textContent = 'Incoming transmission unavailable.';
+                contentInfo.appendChild(fallback);
+            } else paragraphs.forEach((text)=>{
+                const paragraph = document.createElement('p');
+                paragraph.appendChild(this._CreateLinkAwareFragment(text));
+                contentInfo.appendChild(paragraph);
+            });
+        }
+    }
+    _RenderContactPanel() {
+        const { contactPanel, contactTitle, contactIntro, contactDetails, starCanvas, introOverlay, crawlContainer } = this._elements;
+        if (!contactPanel || !contactTitle || !contactIntro || !contactDetails) return;
+        if (starCanvas) starCanvas.style.display = 'block';
+        if (introOverlay) introOverlay.style.display = 'none';
+        if (crawlContainer) crawlContainer.style.display = 'none';
+        contactPanel.style.display = 'flex';
+        contactTitle.textContent = this._contactHeading || this._title || 'Mission Control';
+        contactIntro.textContent = this._contactIntro || 'Placeholder intro text for mission control.';
+        contactDetails.innerHTML = '';
+        if (Array.isArray(this._contactDetails) && this._contactDetails.length > 0) this._contactDetails.forEach((entry)=>{
+            if (!entry) return;
+            const row = document.createElement('div');
+            row.className = 'contact-detail-row';
+            const label = document.createElement('span');
+            label.className = 'contact-detail-label';
+            label.textContent = entry.label || 'Channel';
+            const value = document.createElement('span');
+            value.className = 'contact-detail-value';
+            const formattedValue = this._CreateContactValueElement(entry.value);
+            value.appendChild(formattedValue);
+            row.appendChild(label);
+            row.appendChild(value);
+            contactDetails.appendChild(row);
         });
-        content.style.display = 'block';
-        // Reset the crawl animation
-        const crawlContainer = document.querySelector('.crawl-container');
+        else {
+            const fallback = document.createElement('div');
+            fallback.className = 'contact-detail-row';
+            fallback.textContent = 'Update contactDetails in content.json to show channels here.';
+            contactDetails.appendChild(fallback);
+        }
+    }
+    _CreateContactValueElement(value) {
+        const safeValue = (value || '').trim();
+        if (/^https?:\/\//i.test(safeValue)) {
+            const link = document.createElement('a');
+            link.href = safeValue;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = safeValue.replace(/^https?:\/\//i, '');
+            return link;
+        }
+        if (/^[\w-.]+@[\w-]+\.\w+$/i.test(safeValue)) {
+            const link = document.createElement('a');
+            link.href = `mailto:${safeValue}`;
+            link.textContent = safeValue;
+            return link;
+        }
+        return document.createTextNode(safeValue || 'TBD');
+    }
+    _CreateLinkAwareFragment(text) {
+        const fragment = document.createDocumentFragment();
+        if (!text) return fragment;
+        const pattern = /(https?:\/\/[^\s]+)|([\w.-]+@[\w.-]+\.\w+)/gi;
+        let lastIndex = 0;
+        let match;
+        while((match = pattern.exec(text)) !== null){
+            if (match.index > lastIndex) fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+            const token = match[0];
+            if (token.toLowerCase().startsWith('http')) {
+                const link = document.createElement('a');
+                link.href = token;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = token.replace(/^https?:\/\//i, '');
+                fragment.appendChild(link);
+            } else {
+                const link = document.createElement('a');
+                link.href = `mailto:${token}`;
+                link.textContent = token;
+                fragment.appendChild(link);
+            }
+            lastIndex = pattern.lastIndex;
+        }
+        if (lastIndex < text.length) fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+        return fragment;
+    }
+    _PlayIntroSequence() {
+        const introOverlay = this._elements.introOverlay;
+        const introText = this._elements.introText;
+        const crawlContainer = this._crawlContainer || document.querySelector('.crawl-container');
+        if (this._overlayHideTimeout) {
+            clearTimeout(this._overlayHideTimeout);
+            this._overlayHideTimeout = null;
+        }
+        if (this._overlayFadeTimeout) {
+            clearTimeout(this._overlayFadeTimeout);
+            this._overlayFadeTimeout = null;
+        }
+        if (crawlContainer) {
+            crawlContainer.style.visibility = 'hidden';
+            crawlContainer.style.animation = 'none';
+            crawlContainer.style.transform = '';
+        }
+        if (this._crawlController) this._crawlController.reset();
+        if (introOverlay && introText) {
+            introText.textContent = this._crawlIntro && this._crawlIntro.length > 0 ? this._crawlIntro : 'A long time ago in a galaxy far, far away...';
+            introOverlay.style.display = 'flex';
+            introOverlay.style.opacity = '1';
+            introOverlay.classList.remove('fade-out');
+        }
+        const introDuration = 2000;
+        const fadeDuration = 800;
+        this._overlayHideTimeout = setTimeout(()=>{
+            if (introOverlay) {
+                introOverlay.classList.add('fade-out');
+                this._overlayFadeTimeout = setTimeout(()=>{
+                    introOverlay.style.display = 'none';
+                    this._StartCrawlAnimation();
+                }, fadeDuration);
+            } else this._StartCrawlAnimation();
+        }, introDuration);
+    }
+    _StartCrawlAnimation() {
+        const crawlContainer = this._crawlContainer || document.querySelector('.crawl-container');
+        if (!crawlContainer) return;
+        crawlContainer.style.visibility = 'visible';
         crawlContainer.style.animation = 'none';
+        crawlContainer.style.transform = 'rotateX(45deg) translateY(0) translateZ(0)';
         crawlContainer.offsetHeight; // Trigger reflow
-        crawlContainer.style.animation = 'crawl 60s linear forwards';
+        if (this._crawlController) this._crawlController.start();
+        else crawlContainer.style.animation = 'crawl 120s linear forwards';
     }
     _OnWindowResize() {
-        this._camera.aspect = window.innerWidth / window.innerHeight;
-        this._camera.updateProjectionMatrix();
-        this._threejs.setSize(window.innerWidth, window.innerHeight);
-    }
-    _RAF() {
-        if (this._stopRendering) return;
-        requestAnimationFrame((t)=>{
-            if (this._stopRendering) return;
-            if (this._previousRAF === null) this._previousRAF = t;
-            this._RAF();
-            this._threejs.render(this._scene, this._camera);
-            this._Step(t - this._previousRAF);
-            this._previousRAF = t;
-        });
-    }
-    _Step(timeElapsed) {
-        if (!this._threejs || !this._scene || !this._camera) return;
-        // Update space background animation
-        if (this._spaceMaterial) this._spaceMaterial.uniforms.time.value += timeElapsed * 0.001;
+        this._ResizeCanvas();
+        this._CreateStars();
     }
     Update(timeElapsed) {
-        this._Step(timeElapsed);
+    // No-op: the crawl animation is CSS-driven and the stars animate via RAF.
     }
     Cleanup() {
-        if (this._threejs) this._threejs.dispose();
-        if (this._scene) while(this._scene.children.length > 0)this._scene.remove(this._scene.children[0]);
-        window.removeEventListener('resize', this._OnWindowResize);
-        const canvas = this._threejs.domElement;
-        if (canvas && canvas.parentElement) canvas.parentElement.removeChild(canvas);
-        const scrollControls = document.getElementById('scroll-controls');
-        if (scrollControls) scrollControls.remove();
-        this._threejs = null;
-        this._camera = null;
-        this._scene = null;
-        this._stopRendering = true;
-        const content = document.getElementById('content');
-        if (content) content.style.display = 'none';
+        if (this._frameId) {
+            cancelAnimationFrame(this._frameId);
+            this._frameId = null;
+        }
+        window.removeEventListener('resize', this._resizeHandler);
+        if (this._overlayHideTimeout) {
+            clearTimeout(this._overlayHideTimeout);
+            this._overlayHideTimeout = null;
+        }
+        if (this._overlayFadeTimeout) {
+            clearTimeout(this._overlayFadeTimeout);
+            this._overlayFadeTimeout = null;
+        }
+        if (this._elements.content) this._elements.content.style.display = 'none';
+        if (this._elements.starCanvas) this._elements.starCanvas.style.display = '';
+        if (this._elements.introOverlay) {
+            this._elements.introOverlay.style.display = 'none';
+            this._elements.introOverlay.classList.remove('fade-out');
+        }
+        if (this._elements.contactPanel) this._elements.contactPanel.style.display = 'none';
+        if (this._elements.contactDetails) this._elements.contactDetails.innerHTML = '';
+        if (this._crawlContainer) {
+            this._crawlContainer.style.display = '';
+            this._crawlContainer.style.visibility = 'hidden';
+            this._crawlContainer.style.animation = 'none';
+            this._crawlContainer.style.transform = '';
+        }
+        if (this._crawlController) {
+            this._crawlController.destroy();
+            this._crawlController = null;
+        }
         const popup = document.getElementById('esc-popup');
         if (popup) popup.style.display = 'none';
+        this._stars = [];
+        this._ctx = null;
     }
 }
 
-},{"three":"ktPTu","three/examples/jsm/loaders/RGBELoader.js":"cfP3d","../assets/img/skyHDR.hdr":"db2kb","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cfP3d":[function(require,module,exports,__globalThis) {
+},{"./crawl-controller":"kkoy9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kkoy9":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "RGBELoader", ()=>RGBELoader);
-var _three = require("three");
-// https://github.com/mrdoob/three.js/issues/5552
-// http://en.wikipedia.org/wiki/RGBE_image_format
-class RGBELoader extends (0, _three.DataTextureLoader) {
-    constructor(manager){
-        super(manager);
-        this.type = (0, _three.HalfFloatType);
+parcelHelpers.export(exports, "CrawlController", ()=>CrawlController);
+class CrawlController {
+    constructor(container, options = {}){
+        this._container = container;
+        this._duration = options.duration ?? 90000; // 90 seconds
+        this._distance = options.distance ?? 6000;
+        this._wheelScale = options.wheelScale ?? 0.6;
+        this._manualStep = options.manualStep ?? 35;
+        this._currentOffset = 0;
+        this._startTime = 0;
+        this._frameId = null;
+        this._isManual = false;
+        this._isDestroyed = false;
+        this._eventsAttached = false;
+        this._wheelOptions = {
+            passive: false
+        };
+        this._tick = this._tick.bind(this);
+        this._handleKeyDown = this._handleKeyDown.bind(this);
+        this._handleWheel = this._handleWheel.bind(this);
     }
-    // adapted from http://www.graphics.cornell.edu/~bjw/rgbe.html
-    parse(buffer) {
-        const /* return codes for rgbe routines */ //RGBE_RETURN_SUCCESS = 0,
-        RGBE_RETURN_FAILURE = -1, /* default error routine.  change this to change error handling */ rgbe_read_error = 1, rgbe_write_error = 2, rgbe_format_error = 3, rgbe_memory_error = 4, rgbe_error = function(rgbe_error_code, msg) {
-            switch(rgbe_error_code){
-                case rgbe_read_error:
-                    console.error('THREE.RGBELoader Read Error: ' + (msg || ''));
-                    break;
-                case rgbe_write_error:
-                    console.error('THREE.RGBELoader Write Error: ' + (msg || ''));
-                    break;
-                case rgbe_format_error:
-                    console.error('THREE.RGBELoader Bad File Format: ' + (msg || ''));
-                    break;
-                default:
-                case rgbe_memory_error:
-                    console.error('THREE.RGBELoader: Error: ' + (msg || ''));
-            }
-            return RGBE_RETURN_FAILURE;
-        }, /* offsets to red, green, and blue components in a data (float) pixel */ //RGBE_DATA_RED = 0,
-        //RGBE_DATA_GREEN = 1,
-        //RGBE_DATA_BLUE = 2,
-        /* number of floats per pixel, use 4 since stored in rgba image format */ //RGBE_DATA_SIZE = 4,
-        /* flags indicating which fields in an rgbe_header_info are valid */ RGBE_VALID_PROGRAMTYPE = 1, RGBE_VALID_FORMAT = 2, RGBE_VALID_DIMENSIONS = 4, NEWLINE = '\n', fgets = function(buffer, lineLimit, consume) {
-            const chunkSize = 128;
-            lineLimit = !lineLimit ? 1024 : lineLimit;
-            let p = buffer.pos, i = -1, len = 0, s = '', chunk = String.fromCharCode.apply(null, new Uint16Array(buffer.subarray(p, p + chunkSize)));
-            while(0 > (i = chunk.indexOf(NEWLINE)) && len < lineLimit && p < buffer.byteLength){
-                s += chunk;
-                len += chunk.length;
-                p += chunkSize;
-                chunk += String.fromCharCode.apply(null, new Uint16Array(buffer.subarray(p, p + chunkSize)));
-            }
-            if (-1 < i) {
-                /*for (i=l-1; i>=0; i--) {
-						byteCode = m.charCodeAt(i);
-						if (byteCode > 0x7f && byteCode <= 0x7ff) byteLen++;
-						else if (byteCode > 0x7ff && byteCode <= 0xffff) byteLen += 2;
-						if (byteCode >= 0xDC00 && byteCode <= 0xDFFF) i--; //trail surrogate
-					}*/ if (false !== consume) buffer.pos += len + i + 1;
-                return s + chunk.slice(0, i);
-            }
-            return false;
-        }, /* minimal header reading.  modify if you want to parse more information */ RGBE_ReadHeader = function(buffer) {
-            // regexes to parse header info fields
-            const magic_token_re = /^#\?(\S+)/, gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)\s*$/, exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)\s*$/, format_re = /^\s*FORMAT=(\S+)\s*$/, dimensions_re = /^\s*\-Y\s+(\d+)\s+\+X\s+(\d+)\s*$/, // RGBE format header struct
-            header = {
-                valid: 0,
-                /* indicate which fields are valid */ string: '',
-                /* the actual header string */ comments: '',
-                /* comments found in header */ programtype: 'RGBE',
-                /* listed at beginning of file to identify it after "#?". defaults to "RGBE" */ format: '',
-                /* RGBE format, default 32-bit_rle_rgbe */ gamma: 1.0,
-                /* image has already been gamma corrected with given gamma. defaults to 1.0 (no correction) */ exposure: 1.0,
-                /* a value of 1.0 in an image corresponds to <exposure> watts/steradian/m^2. defaults to 1.0 */ width: 0,
-                height: 0 /* image dimensions, width/height */ 
-            };
-            let line, match;
-            if (buffer.pos >= buffer.byteLength || !(line = fgets(buffer))) return rgbe_error(rgbe_read_error, 'no header found');
-            /* if you want to require the magic token then uncomment the next line */ if (!(match = line.match(magic_token_re))) return rgbe_error(rgbe_format_error, 'bad initial token');
-            header.valid |= RGBE_VALID_PROGRAMTYPE;
-            header.programtype = match[1];
-            header.string += line + '\n';
-            while(true){
-                line = fgets(buffer);
-                if (false === line) break;
-                header.string += line + '\n';
-                if ('#' === line.charAt(0)) {
-                    header.comments += line + '\n';
-                    continue; // comment line
-                }
-                if (match = line.match(gamma_re)) header.gamma = parseFloat(match[1], 10);
-                if (match = line.match(exposure_re)) header.exposure = parseFloat(match[1], 10);
-                if (match = line.match(format_re)) {
-                    header.valid |= RGBE_VALID_FORMAT;
-                    header.format = match[1]; //'32-bit_rle_rgbe';
-                }
-                if (match = line.match(dimensions_re)) {
-                    header.valid |= RGBE_VALID_DIMENSIONS;
-                    header.height = parseInt(match[1], 10);
-                    header.width = parseInt(match[2], 10);
-                }
-                if (header.valid & RGBE_VALID_FORMAT && header.valid & RGBE_VALID_DIMENSIONS) break;
-            }
-            if (!(header.valid & RGBE_VALID_FORMAT)) return rgbe_error(rgbe_format_error, 'missing format specifier');
-            if (!(header.valid & RGBE_VALID_DIMENSIONS)) return rgbe_error(rgbe_format_error, 'missing image size specifier');
-            return header;
-        }, RGBE_ReadPixels_RLE = function(buffer, w, h) {
-            const scanline_width = w;
-            if (scanline_width < 8 || scanline_width > 0x7fff || // this file is not run length encoded
-            2 !== buffer[0] || 2 !== buffer[1] || buffer[2] & 0x80) // return the flat buffer
-            return new Uint8Array(buffer);
-            if (scanline_width !== (buffer[2] << 8 | buffer[3])) return rgbe_error(rgbe_format_error, 'wrong scanline width');
-            const data_rgba = new Uint8Array(4 * w * h);
-            if (!data_rgba.length) return rgbe_error(rgbe_memory_error, 'unable to allocate buffer space');
-            let offset = 0, pos = 0;
-            const ptr_end = 4 * scanline_width;
-            const rgbeStart = new Uint8Array(4);
-            const scanline_buffer = new Uint8Array(ptr_end);
-            let num_scanlines = h;
-            // read in each successive scanline
-            while(num_scanlines > 0 && pos < buffer.byteLength){
-                if (pos + 4 > buffer.byteLength) return rgbe_error(rgbe_read_error);
-                rgbeStart[0] = buffer[pos++];
-                rgbeStart[1] = buffer[pos++];
-                rgbeStart[2] = buffer[pos++];
-                rgbeStart[3] = buffer[pos++];
-                if (2 != rgbeStart[0] || 2 != rgbeStart[1] || (rgbeStart[2] << 8 | rgbeStart[3]) != scanline_width) return rgbe_error(rgbe_format_error, 'bad rgbe scanline format');
-                // read each of the four channels for the scanline into the buffer
-                // first red, then green, then blue, then exponent
-                let ptr = 0, count;
-                while(ptr < ptr_end && pos < buffer.byteLength){
-                    count = buffer[pos++];
-                    const isEncodedRun = count > 128;
-                    if (isEncodedRun) count -= 128;
-                    if (0 === count || ptr + count > ptr_end) return rgbe_error(rgbe_format_error, 'bad scanline data');
-                    if (isEncodedRun) {
-                        // a (encoded) run of the same value
-                        const byteValue = buffer[pos++];
-                        for(let i = 0; i < count; i++)scanline_buffer[ptr++] = byteValue;
-                    //ptr += count;
-                    } else {
-                        // a literal-run
-                        scanline_buffer.set(buffer.subarray(pos, pos + count), ptr);
-                        ptr += count;
-                        pos += count;
-                    }
-                }
-                // now convert data from buffer into rgba
-                // first red, then green, then blue, then exponent (alpha)
-                const l = scanline_width; //scanline_buffer.byteLength;
-                for(let i = 0; i < l; i++){
-                    let off = 0;
-                    data_rgba[offset] = scanline_buffer[i + off];
-                    off += scanline_width; //1;
-                    data_rgba[offset + 1] = scanline_buffer[i + off];
-                    off += scanline_width; //1;
-                    data_rgba[offset + 2] = scanline_buffer[i + off];
-                    off += scanline_width; //1;
-                    data_rgba[offset + 3] = scanline_buffer[i + off];
-                    offset += 4;
-                }
-                num_scanlines--;
-            }
-            return data_rgba;
-        };
-        const RGBEByteToRGBFloat = function(sourceArray, sourceOffset, destArray, destOffset) {
-            const e = sourceArray[sourceOffset + 3];
-            const scale = Math.pow(2.0, e - 128.0) / 255.0;
-            destArray[destOffset + 0] = sourceArray[sourceOffset + 0] * scale;
-            destArray[destOffset + 1] = sourceArray[sourceOffset + 1] * scale;
-            destArray[destOffset + 2] = sourceArray[sourceOffset + 2] * scale;
-        };
-        const RGBEByteToRGBHalf = function(sourceArray, sourceOffset, destArray, destOffset) {
-            const e = sourceArray[sourceOffset + 3];
-            const scale = Math.pow(2.0, e - 128.0) / 255.0;
-            // clamping to 65504, the maximum representable value in float16
-            destArray[destOffset + 0] = (0, _three.DataUtils).toHalfFloat(Math.min(sourceArray[sourceOffset + 0] * scale, 65504));
-            destArray[destOffset + 1] = (0, _three.DataUtils).toHalfFloat(Math.min(sourceArray[sourceOffset + 1] * scale, 65504));
-            destArray[destOffset + 2] = (0, _three.DataUtils).toHalfFloat(Math.min(sourceArray[sourceOffset + 2] * scale, 65504));
-        };
-        const byteArray = new Uint8Array(buffer);
-        byteArray.pos = 0;
-        const rgbe_header_info = RGBE_ReadHeader(byteArray);
-        if (RGBE_RETURN_FAILURE !== rgbe_header_info) {
-            const w = rgbe_header_info.width, h = rgbe_header_info.height, image_rgba_data = RGBE_ReadPixels_RLE(byteArray.subarray(byteArray.pos), w, h);
-            if (RGBE_RETURN_FAILURE !== image_rgba_data) {
-                let data, format, type;
-                let numElements;
-                switch(this.type){
-                    case 0, _three.UnsignedByteType:
-                        data = image_rgba_data;
-                        format = (0, _three.RGBEFormat); // handled as THREE.RGBAFormat in shaders
-                        type = (0, _three.UnsignedByteType);
-                        break;
-                    case 0, _three.FloatType:
-                        numElements = image_rgba_data.length / 4;
-                        const floatArray = new Float32Array(numElements * 3);
-                        for(let j = 0; j < numElements; j++)RGBEByteToRGBFloat(image_rgba_data, j * 4, floatArray, j * 3);
-                        data = floatArray;
-                        format = (0, _three.RGBFormat);
-                        type = (0, _three.FloatType);
-                        break;
-                    case 0, _three.HalfFloatType:
-                        numElements = image_rgba_data.length / 4;
-                        const halfArray = new Uint16Array(numElements * 3);
-                        for(let j = 0; j < numElements; j++)RGBEByteToRGBHalf(image_rgba_data, j * 4, halfArray, j * 3);
-                        data = halfArray;
-                        format = (0, _three.RGBFormat);
-                        type = (0, _three.HalfFloatType);
-                        break;
-                    default:
-                        console.error('THREE.RGBELoader: unsupported type: ', this.type);
-                        break;
-                }
-                return {
-                    width: w,
-                    height: h,
-                    data: data,
-                    header: rgbe_header_info.string,
-                    gamma: rgbe_header_info.gamma,
-                    exposure: rgbe_header_info.exposure,
-                    format: format,
-                    type: type
-                };
-            }
+    start() {
+        if (!this._container || this._isDestroyed) return;
+        this._currentOffset = 0;
+        this._isManual = false;
+        this._applyTransform();
+        this._startTime = performance.now();
+        if (this._frameId) cancelAnimationFrame(this._frameId);
+        this._frameId = requestAnimationFrame(this._tick);
+        this._attachEvents();
+    }
+    reset() {
+        if (!this._container) return;
+        this._currentOffset = 0;
+        this._applyTransform();
+        this._isManual = false;
+        if (this._frameId) {
+            cancelAnimationFrame(this._frameId);
+            this._frameId = null;
         }
-        return null;
     }
-    setDataType(value) {
-        this.type = value;
-        return this;
+    destroy() {
+        this._isDestroyed = true;
+        this.reset();
+        this._detachEvents();
+        this._container = null;
     }
-    load(url, onLoad, onProgress, onError) {
-        function onLoadCallback(texture, texData) {
-            switch(texture.type){
-                case 0, _three.UnsignedByteType:
-                    texture.encoding = (0, _three.RGBEEncoding);
-                    texture.minFilter = (0, _three.NearestFilter);
-                    texture.magFilter = (0, _three.NearestFilter);
-                    texture.generateMipmaps = false;
-                    texture.flipY = true;
-                    break;
-                case 0, _three.FloatType:
-                    texture.encoding = (0, _three.LinearEncoding);
-                    texture.minFilter = (0, _three.LinearFilter);
-                    texture.magFilter = (0, _three.LinearFilter);
-                    texture.generateMipmaps = false;
-                    texture.flipY = true;
-                    break;
-                case 0, _three.HalfFloatType:
-                    texture.encoding = (0, _three.LinearEncoding);
-                    texture.minFilter = (0, _three.LinearFilter);
-                    texture.magFilter = (0, _three.LinearFilter);
-                    texture.generateMipmaps = false;
-                    texture.flipY = true;
-                    break;
-            }
-            if (onLoad) onLoad(texture, texData);
+    _tick(now) {
+        if (this._isManual || !this._container) return;
+        const elapsed = now - this._startTime;
+        const progress = Math.min(elapsed / this._duration, 1);
+        this._currentOffset = -this._distance * progress;
+        this._applyTransform();
+        if (progress >= 1) {
+            this._isManual = true; // allow manual control after auto finishes
+            this._frameId = null;
+            return;
         }
-        return super.load(url, onLoadCallback, onProgress, onError);
+        this._frameId = requestAnimationFrame(this._tick);
+    }
+    _attachEvents() {
+        if (this._eventsAttached || !this._container) return;
+        document.addEventListener('keydown', this._handleKeyDown);
+        document.addEventListener('wheel', this._handleWheel, this._wheelOptions);
+        this._eventsAttached = true;
+    }
+    _detachEvents() {
+        if (!this._eventsAttached) return;
+        document.removeEventListener('keydown', this._handleKeyDown);
+        document.removeEventListener('wheel', this._handleWheel, this._wheelOptions);
+        this._eventsAttached = false;
+    }
+    _handleKeyDown(event) {
+        if (!this._container) return;
+        if (event.code === 'Space') {
+            event.preventDefault();
+            this._toggleManualMode();
+            return;
+        }
+        if (!this._isManual) return;
+        if (event.code === 'ArrowUp' || event.code === 'KeyW') {
+            event.preventDefault();
+            this._adjustOffset(-this._manualStep);
+        } else if (event.code === 'ArrowDown' || event.code === 'KeyS') {
+            event.preventDefault();
+            this._adjustOffset(this._manualStep);
+        }
+    }
+    _handleWheel(event) {
+        if (!this._isManual || !this._container) return;
+        event.preventDefault();
+        const delta = -event.deltaY * this._wheelScale;
+        this._adjustOffset(delta);
+    }
+    _toggleManualMode() {
+        if (!this._container) return;
+        if (this._isManual) this._resumeAuto();
+        else this._enterManual();
+    }
+    _enterManual() {
+        this._isManual = true;
+        if (this._frameId) {
+            cancelAnimationFrame(this._frameId);
+            this._frameId = null;
+        }
+    }
+    _resumeAuto() {
+        this._isManual = false;
+        const progress = Math.abs(this._currentOffset) / this._distance;
+        this._startTime = performance.now() - progress * this._duration;
+        if (this._frameId) cancelAnimationFrame(this._frameId);
+        this._frameId = requestAnimationFrame(this._tick);
+    }
+    _adjustOffset(delta) {
+        const clamped = Math.min(0, Math.max(-this._distance, this._currentOffset + delta));
+        this._currentOffset = clamped;
+        this._applyTransform();
+    }
+    _applyTransform() {
+        if (!this._container) return;
+        this._container.style.transform = `rotateX(45deg) translateY(${this._currentOffset}px) translateZ(0)`;
     }
 }
 
-},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"db2kb":[function(require,module,exports,__globalThis) {
-module.exports = require("3f4668db944b9971").getBundleURL('bOwwI') + "skyHDR.0a1c2890.hdr" + "?" + Date.now();
-
-},{"3f4668db944b9971":"lgJ39"}],"1jMlp":[function(require,module,exports,__globalThis) {
-module.exports = require("f2b2430d6836137f").getBundleURL('bOwwI') + "planetTexture2.14539f5b.jpg" + "?" + Date.now();
-
-},{"f2b2430d6836137f":"lgJ39"}],"iXUTU":[function(require,module,exports,__globalThis) {
-module.exports = require("c7c47e4ff4856b5d").getBundleURL('bOwwI') + "planetTexture3.ba0c55fa.png" + "?" + Date.now();
-
-},{"c7c47e4ff4856b5d":"lgJ39"}],"e34M6":[function(require,module,exports,__globalThis) {
-module.exports = require("52b593caacf085d6").getBundleURL('bOwwI') + "planetTexture4.1d19076e.jpg" + "?" + Date.now();
-
-},{"52b593caacf085d6":"lgJ39"}],"fHOPz":[function(require,module,exports,__globalThis) {
-module.exports = require("6d78a5ad0ac9a39").getBundleURL('bOwwI') + "planetTexture5.475d90a5.jpg" + "?" + Date.now();
-
-},{"6d78a5ad0ac9a39":"lgJ39"}],"2lZ1U":[function(require,module,exports,__globalThis) {
-module.exports = JSON.parse("{\"planets\":[{\"title\":\"Education\",\"contentSections\":[{\"sectionTitle\":\"Northeastern University\",\"description\":\"Candidate for Bachelor of Science in Computer Science and Computer Engineering, May 2026\",\"items\":[\"GPA: 3.96/4.0\",\"Relevant Coursework: Reinforcement Learning, Software Engineering, Object Oriented Design, Algorithms & Data Structures, Database Design, Networks & Distributed Systems, Linear Algebra, Calculus III\",\"Activities: Ready Stage Coordinator - IDEA (Northeastern's Venture Accelerator), Vice-President Men's Club Volleyball - Won 2022 National Championship\",\"Awards: Dean's Scholarship, Dean's List (AllSemesters)\"]}],\"sizeFactor\":0.3,\"positionFactor\":2,\"revolutionSpeedFactor\":0.00001,\"rotationSpeedFactor\":0.00015,\"texturePath\":\"planetTexture4\"},{\"title\":\"Technical Skills\",\"contentSections\":[{\"sectionTitle\":\"Programming Languages\",\"description\":\"\",\"items\":[\"Java\",\"Kotlin\",\"Python\",\"C++\",\"SQL(MySQL,SQLite)\",\"Javascript(ReactJS,NodeJS)\",\"Typescript\"]},{\"sectionTitle\":\"Technologies & Frameworks\",\"description\":\"\",\"items\":[\"Git\",\"Docker\",\"AWS\",\"REST APIs\",\"TCP/IP\",\"PyTorch\",\"YOLO\",\"SAM\",\"OpenCV\",\"GitHub Actions\",\"MongoDB\"]},{\"sectionTitle\":\"Systems\",\"description\":\"\",\"items\":[\"Linux(Ubuntu)\",\"macOS\",\"Windows\"]}],\"sizeFactor\":0.4,\"positionFactor\":10,\"revolutionSpeedFactor\":0.000018,\"rotationSpeedFactor\":0.00021,\"texturePath\":\"planetTexture3\"},{\"title\":\"Work Experience\",\"contentSections\":[{\"sectionTitle\":\"Amazon Robotics\",\"description\":\"Software Development Engineer Co-op, June 2024 - December 2024\",\"items\":[\"Collaborated with a small team on an in-van process technology system in Amazon FTR's Innovation Lab\",\"Redesigned and refactored the codebase to a microservice-based backend in Java and Kotlin, enhancing code quality, scalability, maintainability, and efficiency\",\"Integrated the system with Amazon's production ecosystem utilizing AWS Lambdas, REST APIs, and Docker to prepare the system and enable edge deployment for on-road deliveries\",\"Conducted on-road testing to validate system performance, focusing on software and hardware resiliency, seek-time optimization, and a seamless user experience\",\"Integrated advanced object segmentation and tracking models with LLM-based planning to enhance real-time robotic environment modeling\"]},{\"sectionTitle\":\"Amazon Robotics\",\"description\":\"Software Development Engineer Co-op, July 2023 - December 2023\",\"items\":[\"Developed a proof of concept in-van delivery process technology system to improve package delivery efficiency and accuracy with three interns in Amazon FTR's Innovation Lab\",\"Spearheaded the creation of an automation system for package seeking using Python and an internal Amazon Robotics computer vision system\",\"Built a frontend with JavaScript and React, incorporating feedback from end users to improve functionality\",\"Coordinated with contractors on a comparative time-study; achieving a notable reduction in package delivery time and positive user experience feedback\",\"Presented and demonstrated the system to the CEO of Amazon, receiving positive feedback and support for further development\"]}],\"sizeFactor\":0.8,\"positionFactor\":7,\"revolutionSpeedFactor\":0.000006,\"rotationSpeedFactor\":0.000027,\"texturePath\":\"planetTexture2\"},{\"title\":\"Projects\",\"contentSections\":[{\"sectionTitle\":\"BeyondTheBinary\",\"description\":\"Developer, February 2025 - April 2025\",\"items\":[\"Developed a full-stack TypeScript application using React and Node.js, implementing a Stack Overflow-like platform with real-time messaging, user authentication, and voting system\",\"Developed a scalable backend API with MongoDB integration, handling user authentication, question/answer management, and real-time game state synchronization\"]},{\"sectionTitle\":\"VolleyVision\",\"description\":\"Developer, December 2024 - February 2025\",\"items\":[\"Developed a volleyball film analysis tool in Python using object detection and parabolic tracking to classify ball motion, segment active play vs. downtime, and analyze player movement.\",\"Captured 99% of plays while reducing video runtime by 49%, enhancing film analysis efficiency.\",\"https://github.com/spencersweeney/volleyvision\"]},{\"sectionTitle\":\"Transport Layer Protocol\",\"description\":\"Developer, March 2023 - April 2023\",\"items\":[\"Designed and implemented a Python-based transport protocol leveraging TCP principles, ensuring reliable, ordered data delivery without duplicates or errors\",\"Conducted rigorous testing on a network emulator to validate performance under variable network conditions\"]},{\"sectionTitle\":\"Image Manipulation and Enhancement Editor\",\"description\":\"Developer, October 2022 - December 2022\",\"items\":[\"Created an image editing application in Java using the Model-View-Controller (MVC) architecture, enabling complex filter and transformations\",\"Designed and executed a comprehensive test suite using JUnit, including both unit and integration tests\"]}],\"sizeFactor\":0.5,\"positionFactor\":5,\"revolutionSpeedFactor\":0.00004,\"rotationSpeedFactor\":0.000021,\"texturePath\":\"planetTexture5\"},{\"title\":\"IDEA\",\"contentSections\":[{\"sectionTitle\":\"Northeastern's Venture Accelerator\",\"description\":\"Ready Stage Coordinator, December 2024 - Present\",\"items\":[\"Support 200+ early-stage startups in Northeastern's student-led venture accelerator, guiding them through problem/solution validation, market analysis, and prototype development\",\"Advise founders on refining business models, identifying key customer segments, and MVP iteration\",\"Organize Orientations, Venture Roundtables, and workshops, to equip founders with startup fundamentals\",\"Manage relationships between founders, mentors, and resources, to move ventures from idea to execution\"]}],\"sizeFactor\":0.7,\"positionFactor\":12,\"revolutionSpeedFactor\":0.00003,\"rotationSpeedFactor\":0.000021,\"texturePath\":\"planetTexture5\"}]}");
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2lZ1U":[function(require,module,exports,__globalThis) {
+module.exports = JSON.parse('{"sun":{"title":"Spencer Sweeney","layout":"contact","contactHeading":"CONTACT","contactIntro":"Computer Engineering & Computer Science student graduating in May 2026","contactDetails":[{"label":"Email","value":"spencersweeney@gmail.com"},{"label":"Phone","value":"+1 (978) 407-7432"},{"label":"LinkedIn","value":"https://www.linkedin.com/in/spencer-sweeney/"}]},"planets":[{"title":"Education","crawlIntro":"A long time ago in the city of Boston, MA\u2026","crawlTitle":"EDUCATION","crawlText":"It is a period of intense scholarly pursuit. At the prestigious NORTHEASTERN UNIVERSITY, a young computer scientist has achieved remarkable academic excellence, maintaining a near-perfect GPA of 3.97 while pursuing a dual degree in Computer Science and Computer Engineering.\\n\\n\\nHonored as a Fung Scholar and recipient of the Dean\'s Scholarship, this student has mastered the ancient arts of Reinforcement Learning, Software Engineering, and Object Oriented Design, while conquering the formidable challenges of Algorithms, Database Design, and Networks & Distributed Systems.\\n\\n\\nArmed with powerful tools including Java, Python, C++, and the mystical frameworks of React and AWS, and possessing deep knowledge of robotics through ROS and PyTorch, this scholar prepares to graduate in May 2026, ready to bring balance to the force of technology....","sizeFactor":0.3,"positionFactor":2,"revolutionSpeedFactor":0.00001,"rotationSpeedFactor":0.00015,"texturePath":"coruscant"},{"title":"UCL Research","crawlIntro":"Across the ocean, in a distant scientific sector\u2026","crawlTitle":"UCL Robot Perception & Learning Lab","crawlText":"At the legendary UNIVERSITY COLLEGE LONDON, within the secretive Robot Perception and Learning Lab, a visiting researcher embarks on a dangerous mission that will push the boundaries of autonomous robotics.\\n\\n\\nFrom September through December 2025, this brave engineer commands quadruped robots known as Unitree Go2-W through treacherous unstructured terrain, developing an exploration planner using advanced LiDAR technology to efficiently navigate and map the mysterious vineyards of the countryside.\\n\\n\\nBy combining the lab\'s existing knowledge of traversability, local planning, and global planning into a unified system, the researcher collects precious LiDAR, RGB-D, IMU, and Robot Joint data that may hold the key to autonomous field data collection for generations to come....","sizeFactor":0.4,"positionFactor":10,"revolutionSpeedFactor":0.000018,"rotationSpeedFactor":0.00021,"texturePath":"narShaddaa"},{"title":"Amazon Robotics","crawlIntro":"Within the great empire of Amazon, innovation stirs once more\u2026","crawlTitle":"AMAZON ROBOTICS","crawlText":"In the summer of 2023, a young engineer joins the elite forces at AMAZON\'S FULFILLMENT TECHNOLOGIES & ROBOTICS INNOVATION LAB as a Software Development Engineer Co-op, beginning an epic journey that will test courage, skill, and determination.\\n\\n\\nInitially part of a three-intern strike team building a proof-of-concept in-van process technology system, destiny calls when the other interns depart midway through the mission. Taking command of the full project, the engineer builds backend interfaces in Python for package seeking and retrieval, contributes to a React frontend forged from Delivery Associate feedback, and runs in-lab tests with human-factors specialists to measure and optimize seek time.\\n\\n\\nThe young engineer\'s triumph is complete when demonstrating the creation to over 20 Vice Presidents, an SVP, and the supreme leader\u2014the CEO of Amazon himself\u2014proving that even a single determined engineer can accomplish what seems impossible....\\n\\n\\n   Returning to the AMAZON FULFILLMENT TECHNOLOGIES & ROBOTICS INNOVATION LAB, a seasoned Software Development Engineer continues the noble quest, advancing the in-van process technology system toward its ultimate destiny.\\n\\nFrom June through December 2024, the engineer transforms a proof-of-concept into a scalable microservice architecture using Kotlin, Java, and Amazon Robotics middleware, while Dockerizing services for deployment across multiple edge devices.\\n\\nAn on-road pilot validates the system\'s resilience in live delivery conditions, while a parallel mission integrates object segmentation and tracking with LLM-based planning, enhancing robotic environment modeling and real-time interaction....","sizeFactor":0.8,"positionFactor":7,"revolutionSpeedFactor":0.000006,"rotationSpeedFactor":0.000027,"texturePath":"csilla"},{"title":"VolleyVision","crawlIntro":"On distant courts, a new vision of the game was born\u2026","crawlTitle":"VOLLEYVISION","crawlText":"Between December 2024 and February 2025, a new hope emerges in the realm of sports technology as an innovative system called VOLLEYVISION rises to revolutionize how athletes and coaches analyze the ancient game of volleyball.\\n\\n\\nWielding the power of object detection and parabolic tracking to segment rallies and classify ball motion with unprecedented precision, the system brings order to chaos, automatically capturing 99% of plays across the court with machine learning algorithms that never tire or lose focus.\\n\\n\\nBy reducing usable video length by 49%, VOLLEYVISION allows coaches and athletes to review film at lightspeed, forever changing how teams prepare for battle on the court and giving them the competitive edge they need to achieve victory....\\n\\n\\nhttps://github.com/spencersweeney/volleyvision","sizeFactor":0.5,"positionFactor":5,"revolutionSpeedFactor":0.00004,"rotationSpeedFactor":0.000021,"texturePath":"desert"},{"title":"Activities","crawlIntro":"Far from the lab, adventure still calls\u2026","crawlTitle":"ACTIVITIES","crawlText":"But our hero\'s journey extends far beyond the digital realm into the physical world of athletic competition and community leadership, proving that true mastery requires balance between mind and body.\\n\\n\\nAs a semi-professional athlete with BOSTON BOUNCE in the Volleyball League of America and Vice President of NORTHEASTERN MEN\'S CLUB VOLLEYBALL\u2014champions of the 2022 National Tournament\u2014the engineer demonstrates that teamwork and competitive excellence translate across all domains. Meanwhile, in the IDEA VENTURE ACCELERATOR, serving as Ready Stage Coordinator and Director of Partnerships, leadership skills are honed while guiding aspiring entrepreneurs on their own quests.\\n\\n\\nWhen not coding or competing, our hero explores the wild frontiers of National Parks, discovers new sonic galaxies through Indie Rock music, strategizes over Board Games, and absorbs wisdom from Podcast transmissions, proving that the most interesting engineers are those who seek adventure in all corners of the universe....","sizeFactor":0.7,"positionFactor":12,"revolutionSpeedFactor":0.00003,"rotationSpeedFactor":0.000021,"texturePath":"korriban"}]}');
 
 },{}]},["cwGBK","brDbb"], "brDbb", "parcelRequire94c2")
 

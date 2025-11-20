@@ -6,9 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spencer Sweeney Website</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>body {
-  background-color: #000;
+  color: #e3ddc6;
+  background-color: #050608;
+  background-image: radial-gradient(circle at 10% 20%, #ffbc4a0d, #0000 45%), linear-gradient(135deg, #202630e6, #0a0c0ef2);
   margin: 0;
+  font-family: Share Tech Mono, Arial, sans-serif;
   overflow: hidden;
 }
 
@@ -16,70 +22,159 @@
   z-index: 10000;
   color: #fff;
   text-align: center;
-  background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+  background: linear-gradient(215deg, #13161cf2, #030407fa), repeating-linear-gradient(0deg, #ffffff05, #ffffff05 2px, #0000 2px 4px);
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
   height: 100%;
-  font-family: Arial, sans-serif;
+  padding: 20px;
   display: flex;
   position: fixed;
   top: 0;
   left: 0;
+  overflow-y: auto;
 }
 
 .welcome-content {
-  max-width: 600px;
-  padding: 20px;
+  text-align: left;
+  background: linear-gradient(150deg, #16181cf5, #0c0e12e6);
+  border: 2px solid #ffbc4a59;
+  border-radius: 22px;
+  width: min(520px, 90vw);
+  padding: clamp(10px, 5vw, 28px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 15px 45px #000000bf, inset 0 0 60px #ffbc4a14;
 }
 
-.welcome-title {
-  color: #4caf50;
-  text-shadow: 0 0 10px #4caf5080;
-  margin-bottom: 30px;
-  font-size: 2.5em;
+.welcome-content:before, .welcome-content:after {
+  content: "";
+  pointer-events: none;
+  border: 1px solid #ffffff0a;
+  border-radius: 14px;
+  position: absolute;
+  inset: 12px;
+}
+
+.welcome-content:after {
+  border-color: #ffbc4a40;
+  inset: 5px;
 }
 
 .controls-section {
-  background: #ffffff1a;
-  border-radius: 10px;
+  background: linear-gradient(#22272fd9, #0f1115f2);
+  border: 1px solid #d6b37666;
+  border-radius: 16px;
+  gap: 16px;
   margin: 20px 0;
-  padding: 20px;
+  padding: clamp(18px, 5vw, 28px);
+  display: grid;
+  position: relative;
+  box-shadow: inset 0 0 35px #00000059;
+}
+
+.controls-section h2 {
+  letter-spacing: .25em;
+  color: #ffe468;
+  margin: 0 0 10px;
+  font-size: 1.2rem;
 }
 
 .control-item {
-  justify-content: space-between;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  background: linear-gradient(135deg, #0c0e12f2, #16181bbf);
+  border: 1px solid #ffe46859;
+  border-radius: 10px;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  margin: 10px 0;
-  display: flex;
+  padding: 12px 16px;
+  display: grid;
+  position: relative;
+  box-shadow: inset 0 0 15px #0009, 0 3px 12px #00000073;
+}
+
+.control-item span:first-child {
+  text-align: left;
+  color: #f4eed9;
+  font-size: .95rem;
 }
 
 .control-key {
-  background: #fff3;
-  border-radius: 5px;
+  color: #ffe468;
+  background: #181b21f2;
+  border: 1px solid #ffe46873;
+  border-radius: 6px;
+  justify-self: flex-end;
   margin-left: 10px;
-  padding: 5px 10px;
+  padding: 6px 16px;
+  font-weight: bold;
+  box-shadow: inset 0 -2px #0009;
 }
 
 #takeoff-button {
-  color: #fff;
+  color: #1b1407;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 2px;
-  background: #4caf50;
-  border: none;
-  border-radius: 25px;
+  background: linear-gradient(120deg, #c26b16, #f5c451);
+  border: 1px solid #ffe46899;
+  border-radius: 18px;
   margin-top: 20px;
   padding: 15px 40px;
-  font-size: 1.2em;
+  font-family: Orbitron, sans-serif;
+  font-size: 1.05em;
   transition: all .3s;
+  box-shadow: 0 15px 35px #1a0f0099, inset 0 0 12px #ffffff1a;
 }
 
 #takeoff-button:hover {
-  background: #45a049;
-  transform: scale(1.05);
-  box-shadow: 0 0 20px #4caf5080;
+  transform: translateY(-1px);
+  box-shadow: 0 20px 45px #1a0f00a6;
+}
+
+#takeoff-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  filter: saturate(.6);
+  box-shadow: inset 0 0 8px #00000059;
+}
+
+.welcome-footer {
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+  display: flex;
+}
+
+.loading-status {
+  width: 100%;
+}
+
+.loading-bar-track {
+  background: #ffffff14;
+  border-radius: 999px;
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 12px #00000073;
+}
+
+.loading-bar-fill {
+  border-radius: inherit;
+  background: linear-gradient(120deg, #f5c451, #c26b16);
+  width: 0%;
+  height: 100%;
+  transition: width .3s;
+}
+
+.loading-bar-text {
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #ffe468;
+  margin-top: 8px;
+  font-size: .85rem;
 }
 
 .stars {
@@ -91,14 +186,14 @@
 }
 
 #loading-screen {
-  z-index: 9999;
+  z-index: 12000;
   background-color: #000;
   justify-content: center;
   align-items: center;
   width: 100%;
   height: 100%;
   transition: opacity .5s ease-out;
-  display: flex;
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -163,131 +258,315 @@
 
 #content {
   z-index: 10;
-  perspective: 400px;
+  perspective: 600px;
+  background: #000;
   width: 100%;
   height: 100%;
+  display: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+#crawl-stars {
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+#intro-overlay {
+  z-index: 20;
+  color: #4ec5ff;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  text-align: left;
+  opacity: 1;
+  background: #000;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: Arial Black, Arial, sans-serif;
+  font-size: 2em;
+  transition: opacity .8s ease-in;
   display: none;
   position: absolute;
   top: 0;
   left: 0;
-  overflow: hidden;
 }
 
-.planet-background {
-  z-index: -1;
-  opacity: .3;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
+#intro-overlay.fade-out {
+  opacity: 0;
 }
 
-.planet-background img {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
+#intro-text {
+  max-width: 65%;
+  margin: 0;
 }
 
 .crawl-container {
-  transform-origin: 50% 100%;
+  transform-origin: 150% 100%;
+  visibility: hidden;
   width: 100%;
   height: 100%;
-  animation: 60s linear forwards crawl;
-  position: relative;
-  top: 0;
-  left: 0;
+  position: absolute;
+  inset: 0;
 }
 
 @keyframes crawl {
   0% {
-    top: 0;
-    transform: rotateX(20deg)translateZ(0);
+    transform: rotateX(45deg)translateY(0)translateZ(0);
   }
 
   100% {
-    top: -6000px;
-    transform: rotateX(25deg)translateZ(-2500px);
+    transform: rotateX(45deg)translateY(-8000px)translateZ(0);
   }
 }
 
 .crawl-content {
+  color: #fcdc3c;
+  text-shadow: 2px 2px 4px #0009;
   text-align: center;
-  color: gold;
-  text-shadow: 2px 2px 4px #00000080;
+  letter-spacing: .05em;
   width: 100%;
-  padding: 40px;
   font-family: Arial Black, Arial, sans-serif;
-  font-size: 2.5em;
-  line-height: 1.5;
+  font-size: 6.75em;
+  line-height: 2;
   position: absolute;
   top: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.crawl-content h2 {
-  text-transform: uppercase;
+#crawl-title {
   letter-spacing: .2em;
-  margin-bottom: .5em;
-  font-size: 3em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: .6em;
+  font-size: clamp(1em, 4vmin, 2em);
 }
 
 .crawl-content h3 {
-  color: orange;
-  margin: 1em 0;
-  font-size: 1.5em;
+  color: #f2a900;
+  text-transform: uppercase;
+  letter-spacing: .3em;
+  margin: .2em 0 .8em;
+  font-size: .9em;
 }
 
 .crawl-content p {
-  margin: 1em 0;
-  font-size: .9em;
+  text-align: justify;
+  text-justify: inter-word;
+  margin: .7em 0;
+  font-size: .55em;
 }
 
-.crawl-content ul {
-  margin: 1em 0;
-  padding: 0;
-  list-style: none;
+.crawl-content a {
+  color: #7ec8ff;
+  text-decoration: none;
 }
 
-.crawl-content li {
-  margin: .5em 0;
-  font-size: .9em;
+.crawl-content a:hover, .crawl-content a:focus {
+  text-decoration: underline;
+}
+
+#contact-panel {
+  backdrop-filter: blur(6px);
+  z-index: 25;
+  background: radial-gradient(circle at 50% 20%, #41321e59, #040506f2);
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  display: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.contact-card {
+  z-index: 1;
+  color: #f4eed9;
+  text-align: left;
+  background: linear-gradient(140deg, #0e1014fa, #1e1a15e6);
+  border: 2px solid #ffbc4a40;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 640px;
+  padding: clamp(32px, 5vw, 48px);
+  font-family: Orbitron, Share Tech Mono, sans-serif;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 60px #000000bf;
+}
+
+.contact-card:before {
+  content: "";
+  opacity: .5;
+  pointer-events: none;
+  background: linear-gradient(120deg, #ffbc4a1f, #0000 65%);
+  position: absolute;
+  inset: 0;
+}
+
+.contact-card h2 {
+  color: #fcdc3c;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin: 0 0 20px;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.contact-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: .35em;
+  color: #cdb79b;
+  margin: 0 0 12px;
+  font-size: .9rem;
+}
+
+.contact-card p {
+  color: #e3ddc6;
+  text-shadow: 0 0 6px #00000073;
+  margin: 0 0 24px;
+  font-family: Share Tech Mono, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.contact-details {
+  flex-direction: column;
+  gap: 12px;
+  display: flex;
+}
+
+.contact-detail-row {
+  background: #13151ad9;
+  border: 1px solid #ffbc4a33;
+  border-radius: 8px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  display: flex;
+  box-shadow: inset 0 0 10px #0000008c;
+}
+
+.contact-detail-label {
+  text-transform: uppercase;
+  letter-spacing: .25em;
+  color: #b07f30;
+  font-size: .9rem;
+}
+
+.contact-detail-value {
+  color: #f4eed9;
+  font-family: Share Tech Mono, sans-serif;
+  font-size: 1rem;
+}
+
+.contact-detail-value a {
+  color: #ffe468;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.contact-detail-value a:hover, .contact-detail-value a:focus {
+  text-decoration: underline;
+}
+
+.contact-stars {
+  z-index: 0;
 }
 
 #esc-popup {
-  color: #fff;
+  color: #f4eed9;
   z-index: 1000;
-  background: #000c;
-  border: 2px solid #4caf50;
-  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  backdrop-filter: blur(4px);
+  background: #0f1012e6;
+  border: 1px solid #ffbc4a59;
+  border-radius: 10px;
   padding: 15px;
-  font-family: Arial, sans-serif;
   font-size: 20px;
   display: none;
   position: absolute;
   top: 20px;
   left: 20px;
-  box-shadow: 0 4px 15px #00000080;
+  box-shadow: 0 12px 35px #0009;
 }
 
 #esc-popup span {
-  color: #4caf50;
+  color: #ffe468;
   font-weight: bold;
 }
 
 #controls-popup {
-  color: #fff;
+  color: #f4eed9;
   z-index: 1000;
-  background: #000c;
+  backdrop-filter: blur(4px);
+  background: #0f1012eb;
+  border: 1px solid #ffbc4a59;
   border-radius: 10px;
   padding: 20px;
-  font-family: Arial, sans-serif;
   font-size: 18px;
   display: none;
   position: absolute;
   top: 20px;
   left: 20px;
-  box-shadow: 0 4px 10px #00000080;
+  box-shadow: 0 12px 35px #0009;
+}
+
+#controls-popup > div {
+  line-height: 1.6;
+}
+
+#controls-popup strong {
+  color: #ffe468;
+}
+
+#controls-popup h3 {
+  color: #ffe468;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin: 0 0 15px;
+  font-family: Orbitron, sans-serif;
+}
+
+#controls-popup p {
+  letter-spacing: .08em;
+  margin: 5px 0;
+  font-family: Share Tech Mono, monospace;
+}
+
+@media (width <= 520px) {
+  #welcome-screen {
+    padding: 12px;
+  }
+
+  .welcome-content {
+    width: min(480px, 96vw);
+    padding: 16px;
+  }
+
+  .controls-section {
+    padding: 16px;
+  }
+
+  .control-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .control-key {
+    justify-self: flex-start;
+    margin-left: 0;
+  }
+
+  #takeoff-button {
+    width: 100%;
+  }
 }
 </style>
 </head>
@@ -296,7 +575,6 @@
     <div id="welcome-screen">
         <div class="stars"></div>
         <div class="welcome-content">
-            <h1 class="welcome-title">Welcome to My Universe</h1>
             <div class="controls-section">
                 <h2>Space Controls</h2>
                 <div class="control-item">
@@ -324,7 +602,17 @@
                     <span class="control-key">E</span>
                 </div>
             </div>
-            <button id="takeoff-button">Take Off</button>
+            <div class="welcome-footer">
+                <div class="loading-status" id="welcome-loading-status" role="status" aria-live="polite">
+                    <div class="loading-bar-track" aria-hidden="true">
+                        <div class="loading-bar-fill" id="welcome-loading-fill"></div>
+                    </div>
+                    <div class="loading-bar-text" id="welcome-loading-text">
+                        Preparing launch systems...
+                    </div>
+                </div>
+                <button id="takeoff-button" disabled="">Preparing Hangar...</button>
+            </div>
         </div>
     </div>
     <div id="loading-screen">
@@ -343,69 +631,138 @@
             gl_FragColor = vec4(1.0, 0.1, 0.3, 1.0);
         }
     </script>
-    <script src="/index.8e0e1b18.js" defer=""></script>
     <div id="popup">
         Press 'E' to land on <span id="popup-title"></span>.
     </div>
-    <div id="content" class="content">
-        <div class="planet-background">
-            <canvas id="planet-background-canvas"></canvas>
+    <div id="content">
+        <canvas id="crawl-stars" aria-hidden="true"></canvas>
+        <div id="intro-overlay">
+            <p id="intro-text">A long time ago in a galaxy far, far away...</p>
         </div>
         <div class="crawl-container">
             <div class="crawl-content">
-                <h2 id="content-title">Popup Title</h2>
-                <div id="content-info">
-                    <!-- Dynamic content will be inserted here -->
-                </div>
+                <h2 id="crawl-title"></h2>
+                <div id="content-info"></div>
+            </div>
+        </div>
+        <div id="contact-panel" aria-live="polite">
+            <div class="stars contact-stars" aria-hidden="true"></div>
+            <div class="contact-card">
+                <p class="contact-eyebrow">SPENCER SWEENEY</p>
+                <h2 id="contact-title"></h2>
+                <p id="contact-intro"></p>
+                <div id="contact-details" class="contact-details"></div>
             </div>
         </div>
     </div>
     <div id="esc-popup">
-        <span style="color: #4caf50; font-weight: bold">ESC</span> to return to space
+        <div><span>ESC</span> to return to space</div>
+        <div><span>SPACE</span> to pause / resume crawl</div>
+        <div><span>SCROLL</span> or <span>W/S</span> while paused</div>
     </div>
     <div id="controls-popup">
-        <h3 style="color: #4caf50; margin: 0 0 15px">Space Controls</h3>
-        <div style="line-height: 1.6">
-            <p style="margin: 5px 0"><strong>W</strong> - Move Forward</p>
-            <p style="margin: 5px 0"><strong>S</strong> - Move Backward</p>
-            <p style="margin: 5px 0"><strong>A</strong> - Turn Left</p>
-            <p style="margin: 5px 0"><strong>D</strong> - Turn Right</p>
-            <p style="margin: 5px 0"><strong>SHIFT</strong> - Boost Speed</p>
-            <p style="margin: 5px 0"><strong>E</strong> - Land on Planet (when looking at it)</p>
+        <h3>Space Controls</h3>
+        <div>
+            <p><strong>W</strong> - Move Forward</p>
+            <p><strong>S</strong> - Move Backward</p>
+            <p><strong>A</strong> - Turn Left</p>
+            <p><strong>D</strong> - Turn Right</p>
+            <p><strong>SHIFT</strong> - Boost Speed</p>
+            <p><strong>E</strong> - Land on Planet (when looking at it)</p>
         </div>
     </div>
-    <script>function createStars() {
-    const stars = document.querySelector('.stars');
-    for(let i = 0; i < 200; i++){
-        const star = document.createElement('div');
-        star.style.position = 'absolute';
-        star.style.width = '2px';
-        star.style.height = '2px';
-        star.style.background = 'white';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.top = Math.random() * 100 + '%';
-        star.style.opacity = Math.random();
-        stars.appendChild(star);
+    <script>const welcomeState = {
+    takeoffButton: null,
+    welcomeScreen: null,
+    loadingFill: null,
+    loadingText: null,
+    hasTakenOff: false
+};
+function cacheWelcomeElements() {
+    if (!welcomeState.takeoffButton) {
+        welcomeState.takeoffButton = document.getElementById('takeoff-button');
+        welcomeState.welcomeScreen = document.getElementById('welcome-screen');
+        welcomeState.loadingFill = document.getElementById('welcome-loading-fill');
+        welcomeState.loadingText = document.getElementById('welcome-loading-text');
+    }
+    return welcomeState;
+}
+function clampPercent(value) {
+    if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+    return Math.min(100, Math.max(0, value));
+}
+function resolvePercent(detail = {}) {
+    if (typeof detail.percent === 'number') return clampPercent(detail.percent);
+    if (typeof detail.loaded === 'number' && typeof detail.total === 'number' && detail.total > 0) return clampPercent(detail.loaded / detail.total * 100);
+    return 0;
+}
+function updateWelcomeProgress(detail = {}) {
+    const { loadingFill, loadingText } = cacheWelcomeElements();
+    const percent = resolvePercent(detail);
+    if (loadingFill) loadingFill.style.width = percent + '%';
+    if (loadingText) {
+        const progressMessage = detail.message || `Loading assets (${Math.round(percent)}%)`;
+        loadingText.textContent = progressMessage;
     }
 }
+function enableTakeoffButton(message) {
+    const { takeoffButton, loadingText, loadingFill } = cacheWelcomeElements();
+    if (loadingFill) loadingFill.style.width = '100%';
+    if (loadingText) loadingText.textContent = message || 'All systems ready. Awaiting pilot.';
+    if (takeoffButton) {
+        takeoffButton.disabled = false;
+        takeoffButton.textContent = 'Take Off';
+    }
+}
+document.addEventListener('assets:progress', (event)=>{
+    updateWelcomeProgress(event && event.detail || {});
+});
+document.addEventListener('assets:error', (event)=>{
+    const detail = event && event.detail || {};
+    enableTakeoffButton(detail.message || 'Some assets failed to preload. You can still take off.');
+});
+document.addEventListener('assets:ready', ()=>{
+    enableTakeoffButton();
+});
+function createStars() {
+    const starContainers = document.querySelectorAll('.stars');
+    starContainers.forEach((container)=>{
+        // Remove any existing stars to avoid duplicates if this reruns.
+        container.innerHTML = '';
+        for(let i = 0; i < 200; i++){
+            const star = document.createElement('div');
+            star.style.position = 'absolute';
+            star.style.width = '2px';
+            star.style.height = '2px';
+            star.style.background = 'white';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.opacity = Math.random();
+            container.appendChild(star);
+        }
+    });
+}
 document.addEventListener('DOMContentLoaded', function() {
+    cacheWelcomeElements();
     createStars();
-    const takeoffButton = document.getElementById('takeoff-button');
-    const welcomeScreen = document.getElementById('welcome-screen');
-    const loadingScreen = document.getElementById('loading-screen');
+    const { takeoffButton, welcomeScreen } = welcomeState;
+    if (!takeoffButton || !welcomeScreen) return;
+    takeoffButton.disabled = true;
+    takeoffButton.textContent = 'Preparing Hangar...';
     takeoffButton.addEventListener('click', function() {
-        welcomeScreen.style.opacity = '0';
+        if (welcomeState.hasTakenOff || takeoffButton.disabled) return;
+        welcomeState.hasTakenOff = true;
+        document.dispatchEvent(new CustomEvent('welcome:takeoff'));
         welcomeScreen.style.transition = 'opacity 0.5s ease-out';
+        welcomeScreen.style.opacity = '0';
         setTimeout(()=>{
             welcomeScreen.style.display = 'none';
-            loadingScreen.style.display = 'flex';
-        // Start your existing loading process here
-        // ... rest of your loading code ...
         }, 500);
     });
 });
 
 </script>
+    <script src="/index.8e0e1b18.js" defer=""></script>
 </body>
 
 </html>
