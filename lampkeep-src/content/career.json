@@ -1,0 +1,317 @@
+{
+  "reviewedBySpencer": false,
+  "person": {
+    "name": "Spencer Sweeney",
+    "summary": "Software engineer · Robotics background · Recent graduate",
+    "status": "approved"
+  },
+  "items": [
+    {
+      "id": "C1",
+      "kind": "career",
+      "topic": "Education",
+      "status": "approved",
+      "factLine": "Recent graduate.",
+      "todo": "Spencer to supply school, degree, graduation date",
+      "pendingFields": ["school", "degree", "gradDate"],
+      "world": {
+        "object": "Graduation tassel",
+        "landmark": "L3",
+        "pos": [-17, 10, 53],
+        "pageTitle": "Page 1 - Ridge Camp",
+        "text": "The scholars let me go with a tassel and a head full of questions. I'm still asking them. When the way is unclear, I walk home first.",
+        "gatewickHint": "home"
+      },
+      "links": []
+    },
+    {
+      "id": "C2",
+      "kind": "career",
+      "topic": "Software engineering",
+      "status": "approved",
+      "factLine": "Software engineer.",
+      "todo": "Spencer to supply skills to feature",
+      "pendingFields": ["skills"],
+      "world": {
+        "object": "Lamp schematic",
+        "landmark": "L4",
+        "pos": [32, 6, 134],
+        "pageTitle": "Page 3 - The Millhouse",
+        "text": "Every lamp I've mended started as a sketch of how the light should flow. Water taught me patience.",
+        "gatewickHint": "water"
+      },
+      "links": []
+    },
+    {
+      "id": "C3",
+      "kind": "career",
+      "topic": "Robotics",
+      "status": "approved",
+      "factLine": "Two co-ops at Amazon Robotics.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Clockwork toy",
+        "landmark": "L3-nook",
+        "pos": [-30, 4, 78],
+        "pageTitle": "Page 2 - The Tinker's Camp",
+        "text": "Before the Spire, I apprenticed in two great workshops of moving machines. They wake with the east light.",
+        "gatewickHint": "east"
+      },
+      "links": []
+    },
+    {
+      "id": "C4",
+      "kind": "career",
+      "topic": "Research",
+      "status": "approved",
+      "factLine": "Research co-op in a robotics lab at UCL.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Orrery",
+        "landmark": "L5",
+        "pos": [-8, 26, 152],
+        "pageTitle": "Page 4 - Scholar's Lookout",
+        "text": "Then I studied in a scholars' hall of thinking engines. From the hill you can see how everything connects.",
+        "gatewickHint": "hill"
+      },
+      "links": []
+    },
+    {
+      "id": "C5",
+      "kind": "career",
+      "topic": "Projects",
+      "status": "placeholder",
+      "factLine": "",
+      "todo": "Spencer to supply projects",
+      "pendingFields": ["projects"],
+      "world": {
+        "object": "Blueprint tubes",
+        "landmark": "L7",
+        "pos": [-2, 44, 208],
+        "pageTitle": "Page 5 - Blueprint Tubes",
+        "text": "",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "C6",
+      "kind": "career",
+      "topic": "Aspiration",
+      "status": "approved",
+      "factLine": "Dream: becoming a Disney Imagineer.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Little castle lantern",
+        "landmark": "L7",
+        "pos": [0, 44, 208],
+        "pageTitle": "Page 6 - The Little Castle",
+        "text": "One day I'd like to build worlds people walk into and believe in.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "C7",
+      "kind": "career",
+      "topic": "Resume",
+      "status": "placeholder",
+      "factLine": "Resume (PDF).",
+      "todo": "Spencer to supply PDF; place at lampkeep-src/public/resume.pdf",
+      "pendingFields": ["href"],
+      "world": {
+        "object": "Sealed scroll",
+        "landmark": "L7",
+        "pos": [-3, 44, 206],
+        "pageTitle": "The Sealed Scroll",
+        "text": "Everything I learned, written plain, for whoever keeps the lamp next.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "C8",
+      "kind": "career",
+      "topic": "Contact",
+      "status": "approved",
+      "factLine": "Get in touch.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Signal lantern",
+        "landmark": "L7",
+        "pos": [3, 44, 206],
+        "pageTitle": "The Signal Lantern",
+        "text": "Light this and someone will answer.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "C9",
+      "kind": "career",
+      "topic": "Current role",
+      "status": "approved",
+      "factLine": "Software engineer at SpaceX.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Weathervane",
+        "landmark": "L6",
+        "pos": [0, 52, 192],
+        "pageTitle": "The Weathervane",
+        "text": "These days I keep a different lamp, in a new workshop.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "P1",
+      "kind": "personal",
+      "topic": "Hometown",
+      "status": "approved",
+      "factLine": "From Boston; moved to Los Angeles (Culver City) in 2026.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Harbor stone",
+        "landmark": "L1",
+        "pos": [3, 0, 5],
+        "pageTitle": "Harbor Stone",
+        "text": "I came from an old harbor town to a sunny coast.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "P2",
+      "kind": "personal",
+      "topic": "Volleyball",
+      "status": "approved",
+      "factLine": "Played college volleyball.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Practice net",
+        "landmark": "thicket",
+        "pos": [55, 2, 92],
+        "pageTitle": "The Practice Net",
+        "text": "Good teams pass before they score.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "P3",
+      "kind": "personal",
+      "topic": "Outdoors",
+      "status": "approved",
+      "factLine": "Loves the outdoors and national parks.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Trail map",
+        "landmark": "L3",
+        "pos": [-22, 10, 56],
+        "pageTitle": "Trail Map",
+        "text": "I pitch camp where I can see the far peaks.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "P4",
+      "kind": "personal",
+      "topic": "Games",
+      "status": "approved",
+      "factLine": "Loves story-based video games and board games.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Cabin shelf",
+        "landmark": "L4",
+        "pos": [28, 6, 136],
+        "pageTitle": "The Cabin Shelf",
+        "text": "On cold nights we played long games and told longer stories.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "P5",
+      "kind": "personal",
+      "topic": "Star Wars & LOTR",
+      "status": "approved",
+      "factLine": "Star Wars and Lord of the Rings fan.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Two books",
+        "landmark": "L5",
+        "pos": [-4, 26, 154],
+        "pageTitle": "Two Old Tales",
+        "text": "Two tales I reread every winter: one among stars, one with a ring.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "P6",
+      "kind": "personal",
+      "topic": "Fashion",
+      "status": "approved",
+      "factLine": "Into fashion.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Cloak hook",
+        "landmark": "L1",
+        "pos": [-3, 0, 4],
+        "pageTitle": "The Cloak Hook",
+        "text": "A keeper should look the part.",
+        "gatewickHint": ""
+      },
+      "links": []
+    },
+    {
+      "id": "P7",
+      "kind": "personal",
+      "topic": "Music",
+      "status": "approved",
+      "factLine": "Loves discovering artists early.",
+      "todo": "",
+      "pendingFields": [],
+      "world": {
+        "object": "Music box",
+        "landmark": "music",
+        "pos": [20, 5.6, 108],
+        "pageTitle": "The Music Box",
+        "text": "I listen for songs before anyone else knows them.",
+        "gatewickHint": ""
+      },
+      "links": []
+    }
+  ],
+  "resume": {
+    "status": "placeholder",
+    "href": null,
+    "todo": "Spencer to supply PDF; place at lampkeep-src/public/resume.pdf"
+  },
+  "contact": {
+    "status": "approved",
+    "method": "homepage-panel",
+    "label": "Contact",
+    "href": "mailto:spencersweeney@gmail.com",
+    "heading": "CONTACT",
+    "intro": "Computer Engineering & Computer Science student graduating in May 2026",
+    "details": [
+      { "label": "Email", "value": "spencersweeney@gmail.com", "href": "mailto:spencersweeney@gmail.com" },
+      { "label": "Phone", "value": "+1 (978) 407-7432", "href": "tel:+19784077432" },
+      { "label": "LinkedIn", "value": "https://www.linkedin.com/in/spencer-sweeney/", "href": "https://www.linkedin.com/in/spencer-sweeney/" }
+    ],
+    "source": "Published space homepage #contact-panel"
+  }
+}

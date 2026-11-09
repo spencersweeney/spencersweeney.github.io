@@ -148,6 +148,23 @@
   display: flex;
 }
 
+.career-link {
+  color: #ffe468;
+  font-family: "Share Tech Mono", Arial, sans-serif;
+  font-size: .9rem;
+  letter-spacing: .08em;
+  text-decoration: none;
+  align-self: flex-start;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 2px;
+}
+
+.career-link:hover, .career-link:focus-visible { text-decoration: underline; }
+
+.career-link:focus-visible { outline: 2px solid #ffe468; outline-offset: 3px; }
+
 .loading-status {
   width: 100%;
 }
@@ -612,6 +629,7 @@
                     </div>
                 </div>
                 <button id="takeoff-button" disabled="">Preparing Hangar...</button>
+                <a id="career-link" class="career-link" href="/lampkeep/career/">Career &amp; resume →</a>
             </div>
         </div>
     </div>
