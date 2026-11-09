@@ -1,5 +1,4 @@
 import type { PerspectiveCamera } from "three";
-import type { MistRoad } from "../world/MistRoadLevel";
 import { dampAngle, lerp } from "../util/math";
 
 export interface Collider {
@@ -9,13 +8,15 @@ export interface Collider {
   r: number;
 }
 
+export interface RigTarget {
+  cameraYaw: number;
+  cameraPitch: number;
+  player: { x: number; y: number; z: number };
+}
+
 function pullIn(
-  ox: number,
-  oy: number,
-  oz: number,
-  cx: number,
-  cy: number,
-  cz: number,
+  ox: number, oy: number, oz: number,
+  cx: number, cy: number, cz: number,
   spheres: Collider[],
 ): { x: number; y: number; z: number } {
   const dx = cx - ox;
@@ -51,24 +52,15 @@ export class FollowCamera {
 
   constructor(private readonly camera: PerspectiveCamera) {}
 
-  update(sim: MistRoad, colliders: Collider[], dt: number): void {
+  update(sim: RigTarget, colliders: Collider[], dt: number): void {
     const yaw = sim.cameraYaw + this.sway;
     const pitch = sim.cameraPitch;
-    const dist = 4.5;
+    const dist = 4.6;
     const horiz = Math.cos(pitch) * dist;
     const lift = Math.sin(pitch) * dist;
     const px = sim.player.x;
     const py = sim.player.y;
     const pz = sim.player.z;
-    let lookX = px;
-    let lookY = py + 1.15;
-    let lookZ = pz;
-    const locked = sim.enemies.find((e) => e.alive && e.id === sim.lockId);
-    if (locked) {
-      lookX = lerp(lookX, locked.x, 0.35);
-      lookY = lerp(lookY, locked.y + 1.3, 0.35);
-      lookZ = lerp(lookZ, locked.z, 0.35);
-    }
     const desiredX = px - Math.sin(yaw) * horiz;
     const desiredY = py + 1.8 + lift;
     const desiredZ = pz - Math.cos(yaw) * horiz;
@@ -78,10 +70,9 @@ export class FollowCamera {
     this.camera.position.x = lerp(this.camera.position.x, placed.x, k);
     this.camera.position.y = lerp(this.camera.position.y, placed.y, k);
     this.camera.position.z = lerp(this.camera.position.z, placed.z, k);
-    this.camera.lookAt(lookX, lookY, lookZ);
+    this.camera.lookAt(px, py + 1.2, pz);
   }
 
-  /** Used when reduced motion cuts the sway; exported so the rig stays explicit. */
   dampSway(target: number, dt: number): void {
     this.sway = dampAngle(this.sway, target, 2, dt);
   }

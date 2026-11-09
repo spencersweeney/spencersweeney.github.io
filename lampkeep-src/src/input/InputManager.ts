@@ -1,14 +1,12 @@
 import { DEFAULT_BINDINGS, type Bindings } from "./bindings";
-import type { FrameInput } from "../world/types";
+import type { PlayInput } from "../world/valley";
 
 export interface TouchState {
   down: boolean;
   x: number;
   y: number;
-  attack: boolean;
-  dodge: boolean;
-  flare: boolean;
-  lock: boolean;
+  jump: boolean;
+  lamp: boolean;
   pause: boolean;
   lookX: number;
   lookY: number;
@@ -23,8 +21,7 @@ function deadzone(v: number, threshold = 0.15): number {
 
 export class InputManager {
   readonly touch: TouchState = {
-    down: false, x: 0, y: 0, attack: false, dodge: false, flare: false, lock: false, pause: false,
-    lookX: 0, lookY: 0, look: false,
+    down: false, x: 0, y: 0, jump: false, lamp: false, pause: false, lookX: 0, lookY: 0, look: false,
   };
   capture: ((code: string) => void) | null = null;
   private readonly keys = new Set<string>();
@@ -34,6 +31,8 @@ export class InputManager {
   private padLost = false;
   private sawPad = false;
   private prevButtons: boolean[] = [];
+  private lampSince = 0;
+  private flareQueued = false;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -56,6 +55,7 @@ export class InputManager {
     window.addEventListener("blur", () => {
       this.keys.clear();
       this.edges.clear();
+      this.lampSince = 0;
     });
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
     canvas.addEventListener("pointerdown", (e) => {
@@ -63,18 +63,14 @@ export class InputManager {
       if (e.button === 0) {
         this.keys.add("mouse0");
         this.edges.add("mouse0");
-        if (document.pointerLockElement !== canvas) canvas.requestPointerLock();
-      } else if (e.button === 2) {
-        this.keys.add("mouse2");
-        this.edges.add("mouse2");
+        if (document.pointerLockElement !== canvas) void canvas.requestPointerLock();
       }
     });
     window.addEventListener("pointerup", (e) => {
       if (e.button === 0) this.keys.delete("mouse0");
-      if (e.button === 2) this.keys.delete("mouse2");
     });
     window.addEventListener("mousemove", (e) => {
-      if (document.pointerLockElement === canvas || (e.buttons & 1) === 1) {
+      if (document.pointerLockElement === canvas) {
         this.mouseX += e.movementX;
         this.mouseY += e.movementY;
       }
@@ -93,25 +89,25 @@ export class InputManager {
     return lost;
   }
 
-  sample(dt: number, playing: boolean, reduced: boolean): FrameInput & { pause: boolean } {
+  sample(dt: number, playing: boolean, sens: number, invertY: boolean): PlayInput & { pause: boolean } {
     const bindings = { ...DEFAULT_BINDINGS, ...this.getBindings() };
-    const sens = reduced ? 0.00115 : 0.0023;
-    let lookX = this.mouseX * sens;
-    let lookY = this.mouseY * sens;
+    const lookScale = 0.0022 * sens;
+    let lookX = this.mouseX * lookScale;
+    let lookY = this.mouseY * lookScale;
     this.mouseX = 0;
     this.mouseY = 0;
     if (this.touch.look) {
-      lookX = this.touch.lookX * (reduced ? 0.0022 : 0.0045);
-      lookY = this.touch.lookY * (reduced ? 0.0022 : 0.0045);
+      lookX = this.touch.lookX * lookScale * 2;
+      lookY = this.touch.lookY * lookScale * 2;
     }
     this.touch.lookX = 0;
     this.touch.lookY = 0;
-
-    const pad = this.readPad(dt, reduced);
-    if (pad && (Math.abs(pad.lookX) + Math.abs(pad.lookY) > 0) && !this.touch.look) {
+    const pad = this.readPad(dt, sens);
+    if (pad && Math.abs(pad.lookX) + Math.abs(pad.lookY) > 0 && !this.touch.look) {
       lookX = pad.lookX;
       lookY = pad.lookY;
     }
+    if (invertY) lookY *= -1;
 
     let moveX = 0;
     let moveY = 0;
@@ -128,26 +124,26 @@ export class InputManager {
       if (this.held(bindings.down)) moveY -= 1;
     }
 
-    const attack = this.touch.attack || this.held(bindings.attack) || !!pad?.attack;
-    const dodge = this.touch.dodge || this.edged(bindings.dodge) || !!pad?.dodge;
-    const flare = this.touch.flare || this.edged(bindings.flare) || !!pad?.flare;
-    const lockOn = this.touch.lock || this.edged(bindings.lockOn) || !!pad?.lock;
-    const interact = this.edged(bindings.interact);
+    const lampHeld = this.touch.lamp || this.held(bindings.lamp) || !!pad?.lamp;
+    const now = performance.now();
+    if (lampHeld && this.lampSince === 0) this.lampSince = now;
+    if (!lampHeld && this.lampSince > 0) {
+      if (now - this.lampSince < 180) this.flareQueued = true;
+      this.lampSince = 0;
+    }
+    const lamp = lampHeld && now - this.lampSince >= 160;
+    const flare = this.flareQueued;
+    this.flareQueued = false;
+    const jump = this.touch.jump || this.held(bindings.jump) || !!pad?.jump;
+    const interact = this.edged(bindings.interact) || !!pad?.interact;
     const pause = this.touch.pause || this.edged(bindings.pause) || !!pad?.pause;
-    const slow = this.keys.has("AltLeft") || this.keys.has("AltRight") || !!pad?.slow;
-    this.touch.dodge = false;
-    this.touch.flare = false;
-    this.touch.lock = false;
+    const run = this.held(bindings.run) || Math.hypot(moveX, moveY) > 0.8;
     this.touch.pause = false;
     this.edges.clear();
-
     if (!playing) {
-      return {
-        moveX: 0, moveY: 0, lookX: 0, lookY: 0,
-        attack: false, dodge: false, flare: false, lockOn: false, interact: false, slow: false, pause,
-      };
+      return { moveX: 0, moveY: 0, lookX: 0, lookY: 0, jump: false, lamp: false, flare: false, interact: false, run: false, dismiss: false, pause };
     }
-    return { moveX, moveY, lookX, lookY, attack, dodge, flare, lockOn, interact, slow, pause };
+    return { moveX, moveY, lookX, lookY, jump, lamp, flare, interact, run, dismiss: false, pause };
   }
 
   private held(codes: string[]): boolean {
@@ -158,29 +154,27 @@ export class InputManager {
     return codes.some((code) => this.edges.has(code));
   }
 
-  private readPad(dt: number, reduced: boolean): {
+  private readPad(dt: number, sens: number): {
     moveX: number; moveY: number; lookX: number; lookY: number;
-    attack: boolean; dodge: boolean; flare: boolean; lock: boolean; pause: boolean; slow: boolean;
+    jump: boolean; lamp: boolean; interact: boolean; pause: boolean;
   } | null {
     const pads = navigator.getGamepads?.() ?? [];
     const pad = Array.from(pads).find((g) => g && g.connected);
     if (!pad) return null;
     this.sawPad = true;
     const b = pad.buttons.map((button) => button.pressed || button.value > 0.5);
-    const edge = (index: number) => b[index] && !this.prevButtons[index];
+    const edge = (index: number) => !!b[index] && !this.prevButtons[index];
     this.prevButtons = b;
-    const rate = (reduced ? 1.05 : 2.1) * dt;
+    const rate = 2.2 * sens * dt;
     return {
       moveX: deadzone(pad.axes[0] ?? 0),
       moveY: deadzone(-(pad.axes[1] ?? 0)),
       lookX: deadzone(pad.axes[2] ?? 0) * rate,
       lookY: deadzone(pad.axes[3] ?? 0) * rate,
-      attack: !!b[0],
-      dodge: edge(1),
-      flare: edge(2),
-      lock: edge(3) || edge(11),
+      jump: !!b[0],
+      lamp: !!b[2] || (pad.buttons[7]?.value ?? 0) > 0.4,
+      interact: edge(3),
       pause: edge(9),
-      slow: (pad.buttons[6]?.value ?? 0) > 0.5,
     };
   }
 }

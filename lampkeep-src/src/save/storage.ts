@@ -1,18 +1,27 @@
-import { DEFAULT_ASSISTS, type AssistSettings, type TelegraphStyle } from "../content/assists";
 import { DEFAULT_BINDINGS, type Bindings } from "../input/bindings";
-import type { CheckpointId } from "../world/types";
+import { DEFAULT_ASSISTS, type Assists } from "../world/valley";
 
-export const SAVE_KEY = "lampkeep.v3.slice";
+export const SAVE_KEY = "lampkeep.v4";
+export const LEGACY_KEY = "lampkeep.v3.slice";
+
+export interface Settings {
+  assists: Assists;
+  reducedMotion: boolean | null;
+  textSize: 100 | 125 | 150;
+  sensitivity: number;
+  invertY: boolean;
+  volume: number;
+  bindings: Partial<Bindings>;
+}
 
 export interface SaveData {
-  v: 1;
-  checkpointId: CheckpointId;
-  assists: AssistSettings;
-  bindings: Partial<Bindings>;
-  fov: number;
-  reducedMotion: boolean | null;
-  textureWobble: boolean;
-  updatedAt: string;
+  version: 4;
+  lastBrazier: string;
+  litBraziers: string[];
+  foundIds: string[];
+  thicketCleared: boolean;
+  gatewickWoken: boolean;
+  settings: Settings;
 }
 
 export interface KeyValueStore {
@@ -21,19 +30,27 @@ export interface KeyValueStore {
   removeItem(key: string): void;
 }
 
-const CHECKPOINTS: CheckpointId[] = ["spawn", "trail_shrine", "gate_threshold", "cleared"];
-const STYLES: TelegraphStyle[] = ["amber", "high", "colorblind"];
+export function defaultSettings(): Settings {
+  return {
+    assists: { ...DEFAULT_ASSISTS },
+    reducedMotion: null,
+    textSize: 100,
+    sensitivity: 1,
+    invertY: false,
+    volume: 0.8,
+    bindings: {},
+  };
+}
 
 export function defaultSave(): SaveData {
   return {
-    v: 1,
-    checkpointId: "spawn",
-    assists: { ...DEFAULT_ASSISTS },
-    bindings: {},
-    fov: 60,
-    reducedMotion: null,
-    textureWobble: false,
-    updatedAt: new Date().toISOString(),
+    version: 4,
+    lastBrazier: "BR1",
+    litBraziers: [],
+    foundIds: [],
+    thicketCleared: false,
+    gatewickWoken: false,
+    settings: defaultSettings(),
   };
 }
 
@@ -58,39 +75,79 @@ export function browserStore(): KeyValueStore {
   }
 }
 
+function assistsFrom(raw: unknown, legacyMaster?: boolean): Assists {
+  const base = legacyMaster === false
+    ? { endlessLamp: false, stonesStay: false, autoMantle: false, gentleThicket: false, landmarkNudge: false, hintPulses: false }
+    : { ...DEFAULT_ASSISTS };
+  if (!raw || typeof raw !== "object") return base;
+  const src = raw as Partial<Assists>;
+  return {
+    endlessLamp: src.endlessLamp ?? base.endlessLamp,
+    stonesStay: src.stonesStay ?? base.stonesStay,
+    autoMantle: src.autoMantle ?? base.autoMantle,
+    gentleThicket: src.gentleThicket ?? base.gentleThicket,
+    landmarkNudge: src.landmarkNudge ?? base.landmarkNudge,
+    hintPulses: src.hintPulses ?? base.hintPulses,
+  };
+}
+
+export function migrate(raw: unknown): SaveData | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  if (row.version === 4) {
+    const settings = (row.settings ?? {}) as Partial<Settings>;
+    const text = settings.textSize;
+    return {
+      version: 4,
+      lastBrazier: typeof row.lastBrazier === "string" ? row.lastBrazier : "BR1",
+      litBraziers: Array.isArray(row.litBraziers) ? row.litBraziers.map(String) : [],
+      foundIds: Array.isArray(row.foundIds) ? row.foundIds.map(String) : [],
+      thicketCleared: Boolean(row.thicketCleared),
+      gatewickWoken: Boolean(row.gatewickWoken),
+      settings: {
+        ...defaultSettings(),
+        ...settings,
+        assists: assistsFrom(settings.assists),
+        textSize: text === 125 || text === 150 ? text : 100,
+        sensitivity: typeof settings.sensitivity === "number" ? settings.sensitivity : 1,
+      },
+    };
+  }
+  if (row.v === 1) {
+    const old = (row.assists ?? {}) as { master?: boolean };
+    const settings = defaultSettings();
+    settings.assists = assistsFrom(null, old.master);
+    settings.reducedMotion = typeof row.reducedMotion === "boolean" ? row.reducedMotion : null;
+    settings.bindings = (row.bindings ?? {}) as Partial<Bindings>;
+    return { ...defaultSave(), settings, foundIds: [] };
+  }
+  return null;
+}
+
 export function saveState(data: SaveData, store: KeyValueStore = browserStore()): void {
   store.setItem(SAVE_KEY, JSON.stringify(data));
 }
 
 export function loadSave(store: KeyValueStore = browserStore()): SaveData | null {
-  const raw = store.getItem(SAVE_KEY);
-  if (!raw) return null;
+  const current = store.getItem(SAVE_KEY);
+  if (current) {
+    try {
+      return migrate(JSON.parse(current));
+    } catch {
+      return null;
+    }
+  }
+  const legacy = store.getItem(LEGACY_KEY);
+  if (!legacy) return null;
   try {
-    const parsed = JSON.parse(raw) as Partial<SaveData>;
-    if (parsed.v !== 1) return null;
-    if (!parsed.checkpointId || !CHECKPOINTS.includes(parsed.checkpointId)) return null;
-    const assists = { ...DEFAULT_ASSISTS, ...(parsed.assists ?? {}) };
-    if (!STYLES.includes(assists.telegraphStyle)) assists.telegraphStyle = "amber";
-    const fov = typeof parsed.fov === "number" ? Math.max(50, Math.min(75, parsed.fov)) : 60;
-    return {
-      v: 1,
-      checkpointId: parsed.checkpointId,
-      assists,
-      bindings: parsed.bindings ?? {},
-      fov,
-      reducedMotion: typeof parsed.reducedMotion === "boolean" ? parsed.reducedMotion : null,
-      textureWobble: parsed.textureWobble === true,
-      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : new Date().toISOString(),
-    };
+    const next = migrate(JSON.parse(legacy));
+    if (next) saveState(next, store);
+    return next;
   } catch {
     return null;
   }
 }
 
-export function hasContinue(data: SaveData | null): boolean {
-  return !!data && data.checkpointId !== "spawn";
-}
-
-export function resolvedBindings(partial: Partial<Bindings> | undefined): Bindings {
-  return { ...DEFAULT_BINDINGS, ...(partial ?? {}) };
+export function resolvedBindings(partial: Partial<Bindings>): Bindings {
+  return { ...DEFAULT_BINDINGS, ...partial };
 }

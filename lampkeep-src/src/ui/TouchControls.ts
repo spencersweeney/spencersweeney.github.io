@@ -14,9 +14,8 @@ export class TouchControls {
         <span>${STR.move}</span>
       </div>
       <div class="actions">
+        <button type="button" id="btn-jump" class="round jump" aria-label="${STR.jump}">J</button>
         <button type="button" id="btn-lamp" class="round lamp" aria-label="${STR.lamp}">L</button>
-        <button type="button" id="btn-dodge" class="round dodge" aria-label="${STR.dodge}">D</button>
-        <button type="button" id="btn-attack" class="round attack" aria-label="${STR.attack}">A</button>
       </div>
       <div id="rotate" role="status">${STR.rotate}</div>
     `;
@@ -59,48 +58,37 @@ export class TouchControls {
     };
     stick.addEventListener("pointerup", endStick);
     stick.addEventListener("pointercancel", endStick);
-
-    const hold = (id: string, key: "attack") => {
-      const btn = this.root.querySelector(id)!;
-      btn.addEventListener("pointerdown", (e) => {
+    const hold = (id: string, key: "jump" | "lamp") => {
+      const btn = this.root.querySelector(id) as HTMLElement;
+      const on = (e: Event) => {
         e.preventDefault();
         input.touch[key] = true;
-      });
-      const release = () => {
+      };
+      const off = () => {
         input.touch[key] = false;
       };
-      btn.addEventListener("pointerup", release);
-      btn.addEventListener("pointercancel", release);
-      btn.addEventListener("pointerleave", release);
+      btn.addEventListener("pointerdown", on);
+      btn.addEventListener("pointerup", off);
+      btn.addEventListener("pointercancel", off);
     };
-    hold("#btn-attack", "attack");
-    const pulse = (id: string, key: "dodge" | "flare") => {
-      this.root.querySelector(id)!.addEventListener("pointerdown", (e) => {
-        e.preventDefault();
-        input.touch[key] = true;
-      });
-    };
-    pulse("#btn-dodge", "dodge");
-    pulse("#btn-lamp", "flare");
-
+    hold("#btn-jump", "jump");
+    hold("#btn-lamp", "lamp");
     const look = this.root.querySelector("#lookpad") as HTMLElement;
     let lookId = -1;
-    let lx = 0;
-    let ly = 0;
+    let lastX = 0;
+    let lastY = 0;
     look.addEventListener("pointerdown", (e) => {
       lookId = e.pointerId;
-      lx = e.clientX;
-      ly = e.clientY;
-      look.setPointerCapture(e.pointerId);
+      lastX = e.clientX;
+      lastY = e.clientY;
       input.touch.look = true;
-      e.preventDefault();
     });
     look.addEventListener("pointermove", (e) => {
       if (e.pointerId !== lookId) return;
-      input.touch.lookX += e.clientX - lx;
-      input.touch.lookY += e.clientY - ly;
-      lx = e.clientX;
-      ly = e.clientY;
+      input.touch.lookX += e.clientX - lastX;
+      input.touch.lookY += e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
       input.touch.look = true;
     });
     const endLook = (e: PointerEvent) => {

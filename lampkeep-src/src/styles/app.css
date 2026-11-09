@@ -177,7 +177,7 @@ body.mode-play #hud, body.mode-pause #hud { display: block; }
 
 .hud-right { position: absolute; top: 16px; right: 16px; display: none; gap: 8px; pointer-events: auto; }
 
-.chip { pointer-events: auto; background: #221c28; }
+.chip { pointer-events: auto; background: #221c28; min-width: 100px; min-height: 48px; }
 
 #bossbar {
   position: absolute;
@@ -285,18 +285,76 @@ body.touch-ui .touch-only, body.touch-ui .hud-right { display: flex; }
 
 .round {
   position: absolute;
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   font-size: 22px;
   touch-action: none;
 }
 
-.attack { right: 0; bottom: 8px; background: #c45520; border-color: #ffb080; }
+.jump { right: 0; bottom: 8px; background: #5a3d78; border-color: #d2b4ea; }
 
-.dodge { left: 0; bottom: 36px; background: #5a3d78; border-color: #d2b4ea; }
+.lamp { left: 0; bottom: 36px; background: #2f6a44; border-color: #b6e0a8; }
 
-.lamp { right: 28px; top: 0; background: #2f6a44; border-color: #b6e0a8; }
+.hud-top {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  color: #fff6df;
+  pointer-events: none;
+}
+
+.hud-top .chip { pointer-events: auto; margin-left: auto; }
+
+.lampbar {
+  width: 140px;
+  height: 14px;
+  border: 2px solid #e6c36a;
+  background: #241c14;
+}
+
+#lampfill { height: 100%; width: 100%; background: #e0a23a; }
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 8px 12px;
+  color: #ffe7a3;
+  border: 3px solid #e6c36a;
+  text-decoration: none;
+}
+
+#journal {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 10, 10, 0.45);
+  pointer-events: auto;
+}
+
+.journal {
+  width: min(760px, calc(100% - 24px));
+  display: grid;
+  gap: 12px;
+}
+
+.journal .page, .journal .fact {
+  background: #f3e2c4;
+  color: #24180f;
+  border: 3px solid #8a5a28;
+  padding: 16px;
+}
+
+.journal .fact { background: #1c1722; color: #fff6e8; border-color: #e6c36a; }
+
+.journal .kicker { margin: 0 0 6px; letter-spacing: 0.04em; }
 
 #rotate {
   display: none;

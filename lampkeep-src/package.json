@@ -1,16 +1,17 @@
 {
   "name": "lampkeep",
   "private": true,
-  "version": "3.0.0",
+  "version": "4.0.0",
   "type": "module",
-  "description": "Lampkeep of the Green Spire — 3D Mist Road slice, served at /lampkeep/.",
+  "description": "Lampkeep of the Green Spire — exploration slice with career discoveries, served at /lampkeep/.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "content:check": "node scripts/content-check.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "perf": "node scripts/perf.mjs",
-    "check": "npm run test && npm run build && npm run test:e2e && npm run perf"
+    "check": "npm run content:check && npm run test && npm run build && npm run test:e2e && npm run perf"
   },
   "dependencies": {
     "three": "0.187.0"
@@ -20,6 +21,8 @@
     "@gltf-transform/cli": "^4.2.1",
     "@playwright/test": "^1.56.1",
     "@types/three": "^0.187.0",
+    "chrome-launcher": "^1.2.0",
+    "lighthouse": "^12.8.2",
     "typescript": "^5.9.3",
     "vite": "^6.4.1",
     "vitest": "^3.2.4"

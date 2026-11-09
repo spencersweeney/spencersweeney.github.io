@@ -1,157 +1,149 @@
 import { STR } from "../content/strings";
+import type { CareerItem } from "../content/career";
 import { BINDING_LABELS, keyLabel, type Bindings } from "../input/bindings";
-import type { AssistSettings } from "../content/assists";
+import type { Settings } from "../save/storage";
 
-export interface ScreenModel {
-  screen: string;
-  canContinue: boolean;
-  assistsOn: boolean;
-  assists: AssistSettings;
-  bindings: Bindings;
-  fov: number;
-  textureWobble: boolean;
-  reduced: "auto" | "on" | "off";
-  listening: string | null;
+function button(id: string, label: string, autofocus = false): string {
+  return `<button type="button" id="${id}" ${autofocus ? "autofocus" : ""}>${label}</button>`;
 }
 
-function buttons(items: [string, string, boolean?][]): string {
-  return items
-    .map(([id, label, disabled]) => `<button type="button" id="${id}" ${disabled ? "disabled" : ""}>${label}</button>`)
-    .join("");
-}
-
-export function screenHTML(m: ScreenModel): string {
-  if (m.screen === "play") return "";
-  if (m.screen === "title") {
-    return panel(`
+export function titleHTML(saved: boolean): string {
+  const primary = saved
+    ? `${button("continue", STR.continue, true)}${button("new-journey", STR.newJourney)}`
+    : button("play", STR.play, true);
+  return `
+    <section class="panel">
       <h1>${STR.title}</h1>
       <p class="sub">${STR.subtitle}</p>
-      <p class="banner" role="note">${STR.assistsBanner}</p>
-      ${m.assistsOn ? "" : `<p class="note">${STR.assistsOffNote}</p>`}
       <div class="stack">
-        ${buttons([
-          ["begin", STR.begin],
-          ["continue", STR.continue, !m.canContinue],
-          ["controls", STR.controls],
-          ["settings", STR.settings],
-          ["about", STR.about],
-          ["story", STR.story],
-        ])}
+        ${primary}
+        <a class="text-link" href="/lampkeep/career/">${STR.skip}</a>
+        ${button("settings", STR.settings)}
+        ${button("story", STR.story)}
+        ${button("credits", STR.credits)}
       </div>
-      ${m.canContinue ? "" : `<p class="note" id="nosave">${STR.noSave}</p>`}
-    `);
-  }
-  if (m.screen === "controls") {
-    return panel(`
-      <h1>${STR.controls}</h1>
-      <div class="card">${STR.controlsCard.map((line) => `<p>${line}</p>`).join("")}</div>
-      ${buttons([["back", STR.back]])}
-    `);
-  }
-  if (m.screen === "about") {
-    return panel(`
-      <h1>${STR.about}</h1>
-      ${STR.aboutLines.map((line) => `<p>${line}</p>`).join("")}
-      ${buttons([["back", STR.back]])}
-    `);
-  }
-  if (m.screen === "story") {
-    return panel(`
+    </section>`;
+}
+
+export function confirmHTML(): string {
+  return `
+    <section class="panel">
+      <h1>${STR.newJourney}</h1>
+      <p>${STR.confirm}</p>
+      <div class="row">
+        ${button("start-new", STR.start, true)}
+        ${button("cancel-new", STR.cancel)}
+      </div>
+    </section>`;
+}
+
+export function storyHTML(): string {
+  return `
+    <section class="panel">
       <h1>${STR.story}</h1>
       <p>${STR.storyBody}</p>
-      ${buttons([["back", STR.back]])}
-    `);
-  }
-  if (m.screen === "pause") {
-    return panel(`
-      <h1>${STR.pause}</h1>
+      ${button("back", STR.back, true)}
+    </section>`;
+}
+
+export function creditsHTML(): string {
+  return `
+    <section class="panel">
+      <h1>${STR.credits}</h1>
+      <ul>
+        <li>Hero: KayKit Character Pack: Adventurers 1.0 by Kay Lousberg, CC0.</li>
+        <li>Gatewick, valley, braziers, and trees: original art for this page, CC0.</li>
+        <li>three.js, MIT.</li>
+        <li>Kenney Nature Kit was not vendored: the pack download was not available with a license file during this build.</li>
+      </ul>
+      ${button("back", STR.back, true)}
+    </section>`;
+}
+
+export function pauseHTML(onTerrace: boolean): string {
+  return `
+    <section class="panel">
+      <h1>${STR.paused}</h1>
       <div class="stack">
-        ${buttons([
-          ["resume", STR.resume],
-          ["controls", STR.controls],
-          ["settings", STR.settings],
-          ["title-btn", STR.endingTitle],
-        ])}
+        ${button("resume", STR.resume, true)}
+        <a class="text-link" href="/lampkeep/career/">${STR.careerPage}</a>
+        ${onTerrace ? button("show-order", STR.showOrder) : ""}
+        ${button("settings", STR.settings)}
+        ${button("title", STR.titleReturn)}
       </div>
-    `);
-  }
-  if (m.screen === "ending") {
-    return panel(`
-      <h1>${STR.title}</h1>
-      <p>${STR.bossClear}</p>
-      <p>${STR.ending}</p>
-      <div class="row">
-        ${buttons([
-          ["title-btn", STR.endingTitle],
-          ["about", STR.endingAbout],
-          ["story", STR.endingStory],
-        ])}
-      </div>
-    `);
-  }
-  if (m.screen === "dead") {
-    return panel(`
-      <h1>${STR.death}</h1>
-      <div class="row">
-        ${buttons([
-          ["retry", STR.retry],
-          ["title-btn", STR.deathTitle],
-        ])}
-      </div>
-    `);
-  }
-  if (m.screen === "settings") return settingsPanel(m);
-  return "";
+    </section>`;
 }
 
-function panel(inner: string): string {
-  return `<div class="panel">${inner}</div>`;
+export function endingHTML(): string {
+  return `
+    <section class="panel">
+      <h1>${STR.end}</h1>
+      <div class="stack">
+        <a class="text-link" href="/lampkeep/career/">${STR.viewCareer}</a>
+        ${button("keep", STR.keep, true)}
+        ${button("title", STR.titleReturn)}
+      </div>
+    </section>`;
 }
 
-function settingsPanel(m: ScreenModel): string {
-  const a = m.assists;
-  const check = (id: string, label: string, on: boolean) =>
-    `<label class="check"><input type="checkbox" id="${id}" ${on ? "checked" : ""}> ${label}</label>`;
-  const remap = BINDING_LABELS.map(({ action, label }) => {
-    const keys = m.bindings[action].map(keyLabel).join(", ");
-    const pending = m.listening === action ? STR.pressKey : keys;
-    return `<button type="button" data-bind="${action}">${label}: ${pending}</button>`;
+export function settingsHTML(settings: Settings, bindings: Bindings): string {
+  const check = (key: keyof Settings["assists"], label: string) =>
+    `<label class="check"><input type="checkbox" data-assist="${key}" ${settings.assists[key] ? "checked" : ""}/> ${label}</label>`;
+  const rows = BINDING_LABELS.map((row) => {
+    const code = bindings[row.action][0] ?? "";
+    return `<div class="bind"><span>${row.label}</span><button type="button" data-bind="${row.action}">${keyLabel(code)}</button></div>`;
   }).join("");
-  return panel(`
-    <h1>${STR.settings}</h1>
-    ${check("assist-master", STR.settingsLabels.master, a.master)}
-    ${check("assist-damage", STR.settingsLabels.damage, a.damageAssist)}
-    ${check("assist-dodge", STR.settingsLabels.dodge, a.extraIframes)}
-    ${check("assist-soft", STR.settingsLabels.softLock, a.softLock)}
-    ${check("assist-recenter", STR.settingsLabels.recenter, a.cameraRecenter)}
-    ${check("assist-prompts", STR.settingsLabels.prompts, a.showPrompts)}
-    ${check("assist-slow", STR.settingsLabels.slow, a.slowCombat)}
-    <p class="note">${STR.slowHint}</p>
-    <label class="field" for="telegraph">${STR.settingsLabels.telegraph}
-      <select id="telegraph">
-        <option value="amber" ${a.telegraphStyle === "amber" ? "selected" : ""}>${STR.telegraphStyles.amber}</option>
-        <option value="high" ${a.telegraphStyle === "high" ? "selected" : ""}>${STR.telegraphStyles.high}</option>
-        <option value="colorblind" ${a.telegraphStyle === "colorblind" ? "selected" : ""}>${STR.telegraphStyles.colorblind}</option>
-      </select>
-    </label>
-    ${check("wobble", STR.settingsLabels.wobble, m.textureWobble)}
-    <label class="field" for="reduced">${STR.settingsLabels.reduced}
-      <select id="reduced">
-        <option value="auto" ${m.reduced === "auto" ? "selected" : ""}>${STR.reducedModes.auto}</option>
-        <option value="on" ${m.reduced === "on" ? "selected" : ""}>${STR.reducedModes.on}</option>
-        <option value="off" ${m.reduced === "off" ? "selected" : ""}>${STR.reducedModes.off}</option>
-      </select>
-    </label>
-    <label class="field" for="fov">${STR.fovValue(m.fov)}
-      <input id="fov" type="range" min="50" max="75" step="1" value="${m.fov}">
-    </label>
-    <h2>${STR.settingsLabels.remap}</h2>
-    <div class="remap">${remap}</div>
-    <div class="row">
-      ${buttons([
-        ["reset", STR.settingsLabels.reset],
-        ["back", STR.settingsLabels.back],
-      ])}
-    </div>
-  `);
+  return `
+    <section class="panel">
+      <h1>${STR.settings}</h1>
+      <div class="stack">
+        ${check("endlessLamp", "Endless lamp")}
+        ${check("stonesStay", "Stones stay")}
+        ${check("autoMantle", "Auto-mantle")}
+        ${check("gentleThicket", "Gentle thicket")}
+        ${check("landmarkNudge", "Landmark nudge")}
+        ${check("hintPulses", "Hint pulses")}
+        <label class="check"><input id="reduced" type="checkbox" ${settings.reducedMotion ? "checked" : ""}/> Reduced motion</label>
+        <label>Text size
+          <select id="text-size">
+            <option value="100" ${settings.textSize === 100 ? "selected" : ""}>100%</option>
+            <option value="125" ${settings.textSize === 125 ? "selected" : ""}>125%</option>
+            <option value="150" ${settings.textSize === 150 ? "selected" : ""}>150%</option>
+          </select>
+        </label>
+        <label>Camera sensitivity <input id="sens" type="range" min="0.4" max="2" step="0.1" value="${settings.sensitivity}"/></label>
+        <label class="check"><input id="invert" type="checkbox" ${settings.invertY ? "checked" : ""}/> Invert Y</label>
+        <label>Audio volume <input id="volume" type="range" min="0" max="1" step="0.05" value="${settings.volume}"/></label>
+        ${rows}
+        ${button("back", STR.back, true)}
+      </div>
+    </section>`;
+}
+
+export function journalHTML(item: CareerItem, dev: boolean): string {
+  const label = item.kind === "career" ? "Career" : "About Spencer";
+  const banner = import.meta.env.DEV && dev && item.status === "placeholder"
+    ? `<p class="banner">${"PLACE" + "HOLDER"}: ${escapeHtml(item.note || item.topic)}</p>`
+    : "";
+  return `
+    <div class="journal" role="dialog" aria-modal="true" aria-labelledby="journal-title">
+      <article class="page">
+        <p class="kicker">${STR.journal}</p>
+        <h2 id="journal-title">${escapeHtml(item.world.pageTitle)}</h2>
+        <p>${escapeHtml(item.world.text)}</p>
+      </article>
+      <article class="fact">
+        <p class="kicker">${label} · ${escapeHtml(item.topic)}</p>
+        ${banner}
+        <p>${escapeHtml(item.factLine)}</p>
+        <div class="row">
+          <button type="button" id="keep-exploring">${STR.keep}</button>
+          <a class="text-link" href="/lampkeep/career/">${STR.viewCareer}</a>
+        </div>
+      </article>
+    </div>`;
+}
+
+function escapeHtml(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }

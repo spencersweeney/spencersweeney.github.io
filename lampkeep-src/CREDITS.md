@@ -1,18 +1,16 @@
 # Credits — Lampkeep of the Green Spire
 
-## Original
+| File | Source | License |
+|---|---|---|
+| `public/models/lampkeep.glb` | KayKit Character Pack: Adventurers 1.0, Rogue Hooded. https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures (pack 1.0). Page: https://kaylousberg.itch.io/kaykit-adventurers. Downloaded 2026-11-09. | CC0 1.0. Copy in `licenses/kaykit-adventurers.txt` and `public/licenses/kaykit-adventurers.txt`. |
+| Gatewick, valley, trees, braziers, stones, tent | Original for this page. | CC0 1.0. `public/licenses/ORIGINAL-ART.txt`. |
+| three.js r187 | https://threejs.org/ `three@0.187.0` | MIT. `public/licenses/three.MIT.txt`. |
 
-Procedural meshes (Lampkeep, Gorse-sprites, Draft Wisps, Gatewick, Mist Road, shrines, spire) and the 32–64 px textures are original to this slice. See `public/licenses/ORIGINAL-ART.txt` (CC0 1.0).
+Kenney Nature Kit was not vendored. The GitHub repository returned 404 and the kenney.nl zip returned 403, so no license file could be verified on disk. Trees, the tent, and Gatewick use original meshes instead.
 
-No Quaternius, Poly Pizza, Kenney, or KayKit files are shipped. Packs were not vendored because a per-file license was not placed on disk at build time.
+Quaternius packs were not used.
 
-## three.js
-
-[three.js](https://threejs.org/) r187 (`three@0.187.0`) is used for rendering. MIT License. A copy is in `public/licenses/three.MIT.txt` and is published with the page under `/lampkeep/licenses/three.MIT.txt`.
-
-## Tooling (not shipped in the page)
-
-Vite, TypeScript, Vitest, and Playwright are development dependencies. `@gltf-transform/cli` is installed for the spec's asset step; this slice has no glTF files to optimize.
+The KayKit file keeps four clips (Idle, Walking_A, Running_A, Jump_Full_Short) and a 128 px texture. Glide and mantle are procedural. The mesh is about 13k triangles because simplifying it removed the skin. That is over the 2,000 triangle aim and is called out in the PR.
 
 ## Audio
 
