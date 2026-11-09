@@ -1,0 +1,331 @@
+{
+  "title": "Lampkeep of the Green Spire",
+  "subtitle": "A single night on the mist road",
+  "buttons": {
+    "newNight": "New Night",
+    "continue": "Continue",
+    "about": "About",
+    "settings": "Settings",
+    "begin": "Begin",
+    "skip": "Skip",
+    "close": "Close",
+    "done": "Done",
+    "resume": "Resume",
+    "titleScreen": "Title screen",
+    "abandon": "Abandon night",
+    "notYet": "Not yet",
+    "confirmDawn": "Ring dawn",
+    "more": "More",
+    "rules": "Rules",
+    "undo": "Undo",
+    "back": "Back",
+    "dismiss": "Dismiss",
+    "spaceSite": "Space site"
+  },
+  "intro": {
+    "body": "You are the newly appointed Lampkeep of the Green Spire — a freehouse on a highland mist road. Travelers arrive unfinished. Oil is limited. Rooms remember kindness. Usher every guest to a leave-path before dawn.",
+    "tip": "You will learn by lighting one room, staging a prop, and inviting your first traveler."
+  },
+  "tutorial": {
+    "bell1": "Light the Map Room (2 oil), then Stage it with the Kettle or Map Table.",
+    "afterLit": "Stage places props. Mira wants a kettle or a map.",
+    "afterStaged": "Invite Mira into the Map Room.",
+    "bell2": "Cadence and Bram both want the Hearth. Light it, then Mediate.",
+    "bell4": "The Hollow Guest cannot rest here. Refuse them, or soft-close the Cellar — lingering raises Strain.",
+    "dawn": "Ring Dawn when you are ready."
+  },
+  "bells": {
+    "1": "Dusk",
+    "2": "Evening",
+    "3": "Midwatch",
+    "4": "Midwatch Deep",
+    "5": "Predawn",
+    "6": "Dawn"
+  },
+  "nightName": "Night of Soft Rain",
+  "header": {
+    "bellOf": "Bell {bell} of 6",
+    "oil": "Lamp oil",
+    "oilValue": "{oil} / {max}",
+    "strain": "Strain {n}"
+  },
+  "roomsTitle": "Green Spire — Cross-Section",
+  "roomsHint": "Tap a room to light, stage, or invite",
+  "rooms": {
+    "balcony": "Balcony",
+    "map_room": "Map Room",
+    "hearth_hall": "Hearth Hall",
+    "quiet_cell": "Quiet Cell",
+    "foyer": "Foyer",
+    "cellar": "Cellar Archive"
+  },
+  "states": {
+    "unlit": "Unlit",
+    "lit": "Lit",
+    "staged": "Staged",
+    "occupied": "Occupied",
+    "leave_ready": "Leave-path ready",
+    "departed": "Departed",
+    "sealed_soft": "Sealed (soft)",
+    "sealed_harsh": "Sealed (harsh)",
+    "always_lit": "Always lit",
+    "dim": "Dim",
+    "contested": "Contested",
+    "empty": "empty",
+    "resting": "resting",
+    "waiting": "waiting"
+  },
+  "propsTitle": "Prop Tray (place 1–2 per staged room)",
+  "props": {
+    "kettle": "Kettle",
+    "map_table": "Map Table",
+    "spare_cloak": "Spare Cloak",
+    "workbench": "Workbench Kit",
+    "soft_quill": "Soft Quill",
+    "trail_stamp": "Trail Stamp"
+  },
+  "propStates": {
+    "ready": "ready",
+    "spent": "spent"
+  },
+  "propEmpty": "All props are placed.",
+  "guestsTitle": "Guests in the Spire",
+  "waitingTitle": "Waiting guests",
+  "noWaiting": "No one waiting.",
+  "actionsTitle": "This Bell — Actions (pick up to 2)",
+  "actions": {
+    "light": "Light",
+    "stage": "Stage",
+    "invite": "Invite",
+    "mediate": "Mediate",
+    "closeSoft": "Close Soft",
+    "closeHarsh": "Close Harsh",
+    "refuse": "Refuse",
+    "endBell": "End Bell",
+    "ringDawn": "Ring Dawn",
+    "undo": "Undo"
+  },
+  "costs": {
+    "oil2": "2 oil",
+    "oil1": "1 oil",
+    "free": "Free",
+    "usesProp": "Uses prop",
+    "strain1": "Strain +1",
+    "strain2": "Strain +2"
+  },
+  "actionHints": {
+    "lightCell": "Light Quiet Cell",
+    "lightCellDetail": "Cost 2 oil — Opens a leave-path later",
+    "stageMap": "Stage Map Room",
+    "stageMapDetail": "Uses Kettle — Mira rests deeper",
+    "mediate": "Mediate Hearth",
+    "mediateDetail": "Free — Choose who keeps the fire",
+    "closeCellar": "Close Cellar soft",
+    "closeCellarDetail": "No oil — Ends one subplot early"
+  },
+  "goalTitle": "Night Goal",
+  "goal": "Usher every guest to a completed rest chapter before dawn. Perfect Night: oil remaining and no corridor sealed harshly.",
+  "goalStats": "Guests settled {settled}/{total} · Leave-paths open {ready}/{total} · Strain {strain} · Assist: oil costs shown",
+  "dawnHint": "Available when leave-paths ready",
+  "dawnReady": "Leave-paths are ready",
+  "freeInvite": "Invite is free — this room was just staged.",
+  "actionsLeft": "Actions remaining: {n}",
+  "guests": {
+    "mira": {
+      "name": "Mira of the Switchbacks",
+      "role": "Trail-Walker",
+      "arrival": "A rain-dark cloak at the door. Mira of the Switchbacks asks for a quiet map and a kettle that remembers the ridge.",
+      "need": "Wants Map Room + Kettle, Map Table, or Trail Stamp.",
+      "quirk": "She hums if the lamp is steady.",
+      "interaction": "Keep the lamp level and I'll keep my boots off the map. The ridge path is kinder when someone remembers the kettle.",
+      "invite": "Mira settles by the map, boots carefully aside.",
+      "rest": "Mira's leave-path opens toward the ridge.",
+      "hook": "One Bell of rest in the Map Room or Quiet Cell with a kettle, map, or trail prop.",
+      "shortNeed": "Wants quiet Map Room + kettle"
+    },
+    "cadence": {
+      "name": "Cadence Coilwright",
+      "role": "Tinkerer",
+      "arrival": "Cadence Coilwright stamps mist from brass-buckled boots and eyes the Hearth. \"Fire for the solder,\" he says.",
+      "need": "Wants Hearth Hall + Workbench Kit.",
+      "quirk": "Leaves a tiny geared clasp if he rests well.",
+      "interaction": "Fire for the solder, quiet for the springs — both, if the Spire allows.",
+      "share": "Cadence nods at the shared hearth and clears a corner for gears.",
+      "hook": "One Bell of rest in Hearth Hall with the Workbench Kit. Can share the hearth.",
+      "shortNeed": "Wants Hearth + workbench prop"
+    },
+    "bram": {
+      "name": "Bram Whisperwick",
+      "role": "Storyteller",
+      "arrival": "Bram Whisperwick follows the smell of fire. \"A story needs a fire or a cloak — never neither.\"",
+      "need": "Prefers Hearth; accepts Quiet Cell with Spare Cloak.",
+      "quirk": "Stubborn about audience until offered a cloak and quiet.",
+      "interaction": "Give me fire, or give me a cloak and a smaller room. I will not stand in the foyer telling jokes to the door.",
+      "alternate": "Bram wraps the cloak and takes the Quiet Cell, already rewriting the opening line.",
+      "hook": "Hearth Hall, or Quiet Cell with the Spare Cloak. One Bell of rest.",
+      "shortNeed": "Wants Hearth + spare cloak"
+    },
+    "hollow": {
+      "name": "The Hollow Guest",
+      "role": "Unfinished traveler",
+      "arrival": "A fifth knock that isn't a knock — the Hollow Guest stands where the lamplight thins. They cannot rest here. Kindness may still choose how they leave.",
+      "need": "Cannot complete Rest. Refuse, or soft-close the Cellar Archive.",
+      "quirk": "Lingering raises Strain each Bell.",
+      "interaction": "I was never meant to stay past the third Bell. Do not light a room for me.",
+      "refuse": "You decline the Hollow Guest. They fade toward the mist without blame.",
+      "softClose": "You soft-close the Cellar. The Hollow Guest's subplot ends. Strain settles heavier by one.",
+      "harshClose": "You seal the Cellar harshly. The Spire remembers the slam. Strain +2.",
+      "hook": "Cannot rest. Refuse, or soft-close the Cellar. Lingering raises Strain each Bell.",
+      "shortNeed": "Cannot rest — refuse or soft-close"
+    }
+  },
+  "status": {
+    "absent": "Not yet arrived",
+    "waiting": "Waiting",
+    "resting": "Resting",
+    "leave_ready": "Leave-path ready",
+    "departed_complete": "Departed",
+    "departed_unfinished": "Departed unfinished",
+    "soon": "Soon",
+    "arrivalPending": "Arrival pending"
+  },
+  "mediate": {
+    "title": "Mediate the Hearth",
+    "body": "Cadence and Bram both want Hearth Hall.",
+    "cadence": "Give the hearth to Cadence",
+    "cadenceDetail": "Bram will wait for another room.",
+    "bram": "Give the hearth to Bram",
+    "bramDetail": "Cadence only accepts the hearth; waiting may raise Strain.",
+    "share": "Share the hearth",
+    "shareDetail": "Requires Workbench Kit staged (spent now if needed). Both may rest together.",
+    "cancel": "Not yet"
+  },
+  "events": {
+    "roof_drip": {
+      "title": "Roof Drip",
+      "body": "Rain finds a seam in the Map Room roof.",
+      "effect": "If Map Room is occupied, Strain +1 unless you spend 1 oil to steady the lamp (optional choice).",
+      "spend": "Spend 1 oil",
+      "drip": "Let it drip (+1 Strain if occupied)"
+    },
+    "oil_gift": {
+      "title": "A Kind Flask",
+      "body": "A previous keeper left a flask behind the foyer ledger.",
+      "effect": "Gain 2 oil (max does not apply; oil may exceed start).",
+      "accept": "Accept"
+    },
+    "double_knock": {
+      "title": "Double Knock",
+      "body": "Two knocks echo — only wind. You steal a breath and an extra action.",
+      "effect": "actionsLeft += 1 this Bell (max 3).",
+      "continue": "Continue"
+    },
+    "steady_wick": {
+      "title": "Steady Wick",
+      "body": "The wicks catch evenly for a moment.",
+      "effect": "Next Light costs 1 oil instead of 2 (one-shot flag).",
+      "continue": "Continue"
+    }
+  },
+  "epilogue": {
+    "kicker": "Dawn Epilogue — Night of Soft Rain",
+    "leaveTitle": "Guest leave-lines",
+    "miraComplete": "She took the ridge path with a full kettle song. The mist kept its distance.",
+    "miraUnfinished": "She left before the kettle sang. The ridge will wait.",
+    "cadenceComplete": "He left a tiny geared clasp on the hearth mantel — a thank-you that clicks once at noon.",
+    "cadenceUnfinished": "His tools stayed packed. The solder cooled unused.",
+    "bramComplete": "He borrowed the spare cloak and promised a better story next mist-season.",
+    "bramUnfinished": "He left before the cloak warmed. The story will wait for a kinder Bell.",
+    "hollowKind": "The Hollow Guest did not stay. The Spire stayed kind.",
+    "hollowLingered": "Dawn found the Hollow Guest still in the thinning dark. Strain clung like wet wool.",
+    "result": "Night Result",
+    "perfectTitle": "Perfect Night",
+    "perfectBody": "All leave-paths open. Oil remained. No harsh seals. The mist bowed.",
+    "warmTitle": "Warm Night",
+    "warmBody": "Every traveler who could rest, did. Dawn was honest and kind.",
+    "strainedTitle": "Strained Night",
+    "strainedBody": "Dawn came with heavier shoulders. Some songs unfinished — but the door still faced the road.",
+    "failedTitle": "Failed Vigil",
+    "failedBody": "Dawn came anyway. The Spire kept who it could. You set the night down with careful hands.",
+    "lanternTitle": "Quiet Foyer Lantern",
+    "lanternBody": "Always available — never locked behind winning. A small amber lantern beside the guestbook opens About. The night can end without visiting it.",
+    "openAbout": "Open About"
+  },
+  "about": {
+    "title": "About",
+    "p1": "This is Spencer Sweeney's personal website.",
+    "p2": "You are playing Lampkeep of the Green Spire — a short hospitality game set in an original fantasy freehouse.",
+    "p3": "Spencer also keeps an older solar-system / space page as part of this site."
+  },
+  "settings": {
+    "title": "Settings",
+    "relaxedOil": "Relaxed Oil",
+    "showCosts": "Show oil costs",
+    "highlightLegal": "Highlight legal moves",
+    "hostHints": "Host hints",
+    "propRefresh": "Prop refresh at Midwatch Deep",
+    "reducedMotion": "Reduced motion",
+    "motionSystem": "Match device",
+    "motionOn": "On",
+    "motionOff": "Off",
+    "abandonConfirm": "Abandon this night? Progress will be lost.",
+    "nextNight": "Relaxed Oil, Host hints, and Prop refresh apply on the next New Night.",
+    "done": "Done"
+  },
+  "pause": {
+    "title": "Paused"
+  },
+  "errors": {
+    "not_enough_oil": "Not enough oil.",
+    "room_dark": "That room is dark. Light it first.",
+    "no_prop": "No prop selected.",
+    "bad_props": "Those props are not ready.",
+    "guest_refuses_room": "That guest will not rest in this room.",
+    "nothing_to_mediate": "Nothing to mediate.",
+    "dawn_not_ready": "Ring Dawn is not ready — a traveler still needs a leave-path.",
+    "no_night": "No night in progress.",
+    "undo_empty": "Undo is empty.",
+    "no_actions": "No actions left this Bell.",
+    "event_pending": "Resolve the night's event first.",
+    "sealed": "The Cellar is already sealed.",
+    "workbench_missing": "Workbench Kit is not available to share.",
+    "illegal": "That action is not available.",
+    "foyer": "The Foyer stays as it is.",
+    "not_hollow": "Only the Hollow Guest can be refused.",
+    "dawn_locked": "The night has already ended.",
+    "cannot_rest": "That guest cannot rest."
+  },
+  "rules": {
+    "body": "Each Bell: up to 2 actions. Light costs 2 oil. Stage props. Invite guests. Mediate contests. The Hollow Guest cannot rest — refuse or soft-close. Ring Dawn when leave-paths are ready. Undo with U.",
+    "keys": "Keys: 1 Light, 2 Stage, 3 Invite, 4 Mediate, 5 Close Soft, E End Bell, D Ring Dawn, U Undo, Esc close, ? Rules, A About."
+  },
+  "notices": {
+    "bell": "Bell {bell}, {name}.",
+    "strain": "Strain rises to {n}.",
+    "undo": "Undone.",
+    "restReady": "{name}'s leave-path is open.",
+    "gutter": "The lamps gutter. Strain +1.",
+    "hint": "No one moved closer to a leave-path last Bell. Light a room a guest will accept, or stage a prop they asked for.",
+    "share": "The hearth is shared. Both may rest.",
+    "awardCadence": "The hearth is Cadence's. Bram will need another room.",
+    "awardBram": "The hearth is Bram's. Cadence will keep waiting unless the hearth opens again."
+  },
+  "confirm": {
+    "title": "Ring Dawn",
+    "body": "End the night and read the dawn leave-lines?"
+  },
+  "guestCard": "Guest Card",
+  "needTonight": "Need tonight",
+  "quirk": "Quirk",
+  "hook": "Mechanical hook",
+  "sample": "Sample interaction",
+  "aria": {
+    "skip": "Skip to board",
+    "oil": "Lamp oil {oil} of {max}",
+    "roomList": "Rooms",
+    "guestList": "Guests",
+    "propList": "Props",
+    "actions": "Actions",
+    "selected": "selected"
+  }
+}

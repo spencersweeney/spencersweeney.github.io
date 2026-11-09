@@ -1,0 +1,8 @@
+[
+  { "id": "kettle", "tag": "kettle" },
+  { "id": "map_table", "tag": "map" },
+  { "id": "spare_cloak", "tag": "cloak" },
+  { "id": "workbench", "tag": "workbench" },
+  { "id": "soft_quill", "tag": "quill" },
+  { "id": "trail_stamp", "tag": "trail" }
+]

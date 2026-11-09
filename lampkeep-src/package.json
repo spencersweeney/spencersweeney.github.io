@@ -1,0 +1,23 @@
+{
+  "name": "lampkeep",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lampkeep of the Green Spire — one-night slice, served at /lampkeep/.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "perf": "node scripts/perf.mjs",
+    "check": "npm run test && npm run build && npm run test:e2e && npm run perf"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.49.1",
+    "lighthouse": "^12.2.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.6",
+    "vitest": "^3.0.0"
+  }
+}

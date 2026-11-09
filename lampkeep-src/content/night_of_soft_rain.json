@@ -1,0 +1,16 @@
+{
+  "id": "night_of_soft_rain",
+  "seed": "night_of_soft_rain:v1",
+  "bells": 6,
+  "actionsPerBell": 2,
+  "startingOil": 12,
+  "relaxedOil": 16,
+  "startingStrain": 0,
+  "arrivals": {
+    "1": ["mira"],
+    "2": ["cadence", "bram"],
+    "4": ["hollow"]
+  },
+  "eventBells": [2, 3, 4],
+  "eventCap": 2
+}

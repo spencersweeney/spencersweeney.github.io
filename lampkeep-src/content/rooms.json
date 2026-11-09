@@ -1,0 +1,8 @@
+[
+  { "id": "balcony", "start": "unlit" },
+  { "id": "map_room", "start": "unlit" },
+  { "id": "hearth_hall", "start": "unlit" },
+  { "id": "quiet_cell", "start": "unlit" },
+  { "id": "foyer", "start": "lit" },
+  { "id": "cellar", "start": "unlit" }
+]

@@ -1,0 +1,31 @@
+{
+  "mira": {
+    "preferred": "map_room",
+    "accepted": ["map_room", "quiet_cell"],
+    "propTags": ["kettle", "map", "trail"],
+    "restBells": 1,
+    "canRest": true
+  },
+  "cadence": {
+    "preferred": "hearth_hall",
+    "accepted": ["hearth_hall"],
+    "propTags": ["workbench"],
+    "restBells": 1,
+    "canRest": true,
+    "acceptShare": true
+  },
+  "bram": {
+    "preferred": "hearth_hall",
+    "accepted": ["hearth_hall", "quiet_cell"],
+    "propTags": ["cloak"],
+    "restBells": 1,
+    "canRest": true
+  },
+  "hollow": {
+    "preferred": null,
+    "accepted": [],
+    "propTags": [],
+    "restBells": 0,
+    "canRest": false
+  }
+}
